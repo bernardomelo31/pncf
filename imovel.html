@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>[MDA] Obter Crédito Fundiário - Elegibilidade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link rel="stylesheet" href="bundle.min.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
+
+  <style>
+/* Campo moeda - mesma altura e estilo dos demais */
+.moeda-input {
+  text-align: right;                /* alinha valor à direita */
+  font-weight: 600;                 /* dá destaque */
+}
+
+/* ===== Pré-Análise ===== */
+#preAnaliseWrapper table {
+  margin-top: 1rem;
+  width: 100%;
+}
+#preAnaliseWrapper td {
+  padding: 10px;
+}
+#preAnaliseWrapper td:last-child {
+  width: 120px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Badge SIM */
+.badge-sim {
+  background: #e6f4ea;       /* verde claro já usado no print */
+  color: #145a32;            /* verde escuro texto */
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-sim i { font-size: 18px; }
+
+/* Badge NÃO */
+.badge-nao {
+  background: #fdecea;       /* vermelho claro */
+  color: #b71c1c;            /* vermelho escuro texto */
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-nao i { font-size: 18px; }
+
+/* Linha final destacada */
+.preanalise-final {
+  background: #2e7d32 !important;  /* verde institucional */
+  color: #fff !important;
+  font-weight: bold;
+}
+    body { background: #fafafa; padding: 20px; }
+    .btn-square { border-radius: 0 !important; }
+    th { font-weight: bold; text-align: left; }
+    .action-btn { background: none; border: none; cursor: pointer; margin: 0 4px; color: #444; }
+    .action-btn .material-icons { font-size: 20px; vertical-align: middle; }
+
+    .form-section { margin-top: 1.5rem; padding: 1rem; background: #fff; border: 1px solid #ddd; }
+    .form-section h5 { margin-bottom: .8rem; color: #1976d2; }
+
+    .table-wrapper { overflow-x: auto; margin-top: 1rem; }
+    table.striped tbody tr:nth-child(odd) { background-color: #f9f9f9; }
+
+    #mensagem { display: none; padding: 8px; margin-bottom: 1rem; border-radius: 4px; font-weight: 600; }
+    .msg-sucesso { background: #c8e6c9; color: #256029; }
+    .msg-erro { background: #ffcdd2; color: #b71c1c; }
+
+    /* ===== Layout/inputs ===== */
+    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .form__input { flex: 1; }
+    .form__input label { display: block; margin-bottom: 4px; font-weight: 600; color: #444; }
+
+    /* Botões: altura/line-height iguais */
+    .btn,
+    .btn-add,
+    .file-field .btn {
+      height: 44px !important;
+      line-height: 44px !important;
+    }
+
+    /* Inputs/selects: altura 44 mas sem line-height 44; inclui padding na altura */
+    .input-field input,
+    .form__input input,
+    .form__input select,
+    select.browser-default {
+      height: 44px !important;
+      line-height: normal !important;
+      padding: 8px 10px !important;
+      box-sizing: border-box;
+      border: 1px solid #cfd8dc !important;
+      border-radius: 4px !important;
+      background: #fff !important;
+      margin: 0 !important;
+    }
+    input[type="email"] { line-height: normal !important; }
+    .input-field input[readonly] { background: #f9f9f9 !important; }
+
+    /* Botões tema */
+    .btn-add { background: #1976d2 !important; color: #fff !important; }
+    .btn-danger { background: #b71c1c !important; color: #fff !important; }
+
+    .modo-edicao { color:#b71c1c; font-weight:bold; display:none; margin-top:5px; }
+
+    /* ===== File-field ===== */
+    .file-field .file-path-wrapper { display: none !important; } /* não vamos usar o path do materialize */
+    .file-field .btn{
+      height: 44px !important;
+      line-height: 44px !important;
+      padding: 0 16px !important;       /* sem padding vertical */
+      display: inline-flex !important;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .file-field .btn i{
+      font-size: 20px;
+      line-height: 1 !important;
+      margin-right: 8px;
+    }
+    .file-field .btn span{ line-height: 1 !important; }
+
+    /* ===== Grid dos Anexos ===== */
+    .anexo-grid{
+      display: grid;
+      /* select | ESCOLHER | nome | ADICIONAR */
+      grid-template-columns: minmax(260px,1fr) 160px minmax(360px,1.6fr) auto;
+      gap: 12px;
+      align-items: start;     /* alinha pelo topo (labels) */
+    }
+    @media (max-width: 992px){ .anexo-grid{ grid-template-columns: 1fr; } }
+    .anexo-grid .input-field, .anexo-grid .form__input{ margin-top: 0 !important; }
+
+    /* as colunas de botões não têm label → damos o mesmo “offset” do label */
+    .anexo-grid > :nth-child(2),
+    .anexo-grid > :nth-child(4){ padding-top: 24px; }
+
+    /* garantia extra dentro do grid */
+    .anexo-grid input[type="text"],
+    .anexo-grid select.browser-default{
+      height: 44px !important;
+      line-height: normal !important;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+<div class="container content">
+  <div class="card">
+    <div class="card-content">
+      <h2 class="label-text center-align medium" style="margin:0;line-height:1.5;font-weight:normal;background:#1976d2;color:#fff;padding:10px;">
+        Obter Crédito Fundiário
+      </h2>
+      <div style="text-align:center; color:#145aa3; padding:.5rem;">
+        <i class="material-icons" style="font-size:25px; vertical-align:middle; color:#145aa3;">label_outline</i>
+        <b>ETAPA: Elegibilidade do Imóvel</b>
+      </div>
+
+      <div id="mensagem"></div>
+
+      <!-- 1) Imóvel -->
+      <div class="form-section">
+        <h5>Dados do Imóvel</h5>
+        <form id="formElegibilidade" onsubmit="event.preventDefault(); salvarImovel();">
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="parcelaCodigo">SNCR (INCRA)</label>
+              <input type="text" id="parcelaCodigo" placeholder="Digite 13 números do SNCR" />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="codigoImovel">Certificação SIGEF</label>
+              <input type="text" id="codigoImovel" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="status">Status</label>
+              <input type="text" id="status" readonly />
+            </div>
+          </div>
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="areaHectares">Área (ha)</label>
+              <input type="text" id="areaHectares" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="nomeArea">Denominação</label>
+              <input type="text" id="nomeArea" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="registroCns">Cartório (CNS)</label>
+              <input type="text" id="registroCns" readonly />
+            </div>
+          </div>
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="registroMatricula">Matrícula do Imóvel</label>
+              <input type="text" id="registroMatricula" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="municipio">Município</label>
+              <input type="text" id="municipio" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="uf">UF</label>
+              <input type="text" id="uf" readonly />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12">
+              <button type="submit" class="btn btn-add waves-effect waves-light btn-square">
+                <i class="material-icons left">add</i>ADICIONAR DADOS NA TABELA
+              </button>
+              <small id="modoEdicaoImovel" class="modo-edicao">✎ MODO EDIÇÃO</small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="striped bordered">
+          <thead>
+            <tr>
+              <th>SNCR</th><th>Certificação SIGEF</th><th>Status</th><th>Área (ha)</th>
+              <th>Denominação</th><th>CNS</th><th>Matrícula</th><th>Município</th><th>UF</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaImoveis"></tbody>
+        </table>
+      </div>
+
+      <!-- 2) Vendedor -->
+      <div class="form-section">
+        <h5>Dados do Vendedor</h5>
+        <form id="formVendedor" onsubmit="event.preventDefault(); salvarVendedor();">
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="cpfVendedor">CPF</label>
+              <input type="text" id="cpfVendedor" placeholder="Digite o CPF" />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="nomeVendedor">Nome</label>
+              <input type="text" id="nomeVendedor" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="nascimento">Data de Nascimento</label>
+              <input type="text" id="nascimento" readonly />
+            </div>
+          </div>
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="cepVendedor">CEP</label>
+              <input type="text" id="cepVendedor" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="ufVendedor">UF</label>
+              <input type="text" id="ufVendedor" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="municipioVendedor">Município</label>
+              <input type="text" id="municipioVendedor" readonly />
+            </div>
+          </div>
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="bairroVendedor">Bairro</label>
+              <input type="text" id="bairroVendedor" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="enderecoVendedor">Endereço</label>
+              <input type="text" id="enderecoVendedor" readonly />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="emailVendedor">E-mail</label>
+              <input type="email" id="emailVendedor" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="form__input col s12 m4">
+              <label for="celularVendedor">Celular</label>
+              <input type="text" id="celularVendedor" />
+            </div>
+            <div class="form__input col s12 m4">
+              <label for="estadoCivil">Estado Civil</label>
+              <select id="estadoCivil">
+                <option value="" disabled selected>Selecione</option>
+                <option value="Solteiro(a)">Solteiro(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Viúvo(a)">Viúvo(a)</option>
+                <option value="Separado(a)">Separado(a) judicialmente</option>
+                <option value="União Estável">União Estável</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col s12">
+              <button type="submit" class="btn btn-add waves-effect waves-light btn-square">
+                <i class="material-icons left">add</i>ADICIONAR DADOS NA TABELA
+              </button>
+              <small id="modoEdicaoVendedor" class="modo-edicao">✎ MODO EDIÇÃO</small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="striped bordered">
+          <thead>
+            <tr>
+              <th>CPF</th><th>Nome</th><th>Nascimento</th><th>CEP</th><th>UF</th><th>Município</th>
+              <th>Bairro</th><th>Endereço</th><th>Email</th><th>Celular</th><th>Estado Civil</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaVendedores"></tbody>
+        </table>
+      </div>
+
+      <!-- 3) Anexos do Imóvel -->
+      <div class="form-section">
+        <h5>📁 Anexos do Imóvel</h5>
+        <form id="formAnexoImovel" onsubmit="event.preventDefault(); salvarOuAtualizarAnexo('imovel');">
+          <div class="anexo-grid">
+            <div class="form__input">
+              <label for="tipoAnexoImovel">Tipo de Documento</label>
+              <select id="tipoAnexoImovel" class="browser-default">
+                <option value="" disabled selected>Selecione o documento</option>
+                <option value="Certidão de Regularidade do FGTS">Certidão de Regularidade do FGTS</option>
+                <option value="Certidões Negativas">Certidões Negativas</option>
+                <option value="Cópia da Certidão de Registro">Cópia da Certidão de Registro</option>
+                <option value="Certidão Vintenária">Certidão Vintenária</option>
+                <option value="Certidão de Ônus">Certidão de Ônus</option>
+                <option value="CCIR">CCIR</option>
+                <option value="Regularidade Fiscal do Imóvel">Regularidade Fiscal do Imóvel</option>
+                <option value="Débitos Tributários Federais do Imóvel">Débitos Tributários Federais do Imóvel</option>
+                <option value="Declaração de não interesse do INCRA">Declaração de não interesse do INCRA</option>
+              </select>
+            </div>
+
+            <div class="input-field file-field">
+              <div class="btn btn-add btn-square">
+                <i class="material-icons left">upload_file</i><span>ESCOLHER</span>
+                <input type="file" id="arquivoImovel" accept=".pdf" aria-label="Escolher arquivo PDF">
+              </div>
+            </div>
+
+            <div class="form__input">
+              <label for="nomeArquivoImovel">Nome do arquivo</label>
+              <input type="text" id="nomeArquivoImovel" readonly />
+            </div>
+
+            <div class="right-align">
+              <button id="btnAddUpdImovel" type="submit" class="btn btn-add waves-effect waves-light btn-square">
+                <i class="material-icons left">add</i>ADICIONAR ARQUIVO
+              </button>
+              <small id="modoEdicaoAnexoImovel" class="modo-edicao">✎ MODO EDIÇÃO</small>
+            </div>
+          </div>
+        </form>
+
+        <div class="table-wrapper">
+          <table class="striped bordered">
+            <thead>
+              <tr><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="tabelaAnexosImovel"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4) Anexos do Vendedor -->
+      <div class="form-section">
+        <h5>📁 Anexos do Vendedor</h5>
+        <form id="formAnexoVendedor" onsubmit="event.preventDefault(); salvarOuAtualizarAnexo('vendedor');">
+          <div class="anexo-grid">
+            <div class="form__input">
+              <label for="tipoAnexoVendedor">Tipo de Documento</label>
+              <select id="tipoAnexoVendedor" class="browser-default">
+                <option value="" disabled selected>Selecione o documento</option>
+                <option value="Documento de Identificação">Documento de Identificação</option>
+                <option value="Comprovante de Endereço">Comprovante de Endereço</option>
+                <option value="Certidões Negativas">Certidões Negativas</option>
+                <option value="Procuração">Procuração</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+
+            <div class="input-field file-field">
+              <div class="btn btn-add btn-square">
+                <i class="material-icons left">upload_file</i><span>ESCOLHER</span>
+                <input type="file" id="arquivoVendedor" accept=".pdf" aria-label="Escolher arquivo PDF">
+              </div>
+            </div>
+
+            <div class="form__input">
+              <label for="nomeArquivoVendedor">Nome do arquivo</label>
+              <input type="text" id="nomeArquivoVendedor" readonly />
+            </div>
+
+            <div class="right-align">
+              <button id="btnAddUpdVendedor" type="submit" class="btn btn-add waves-effect waves-light btn-square">
+                <i class="material-icons left">add</i>ADICIONAR ARQUIVO
+              </button>
+              <small id="modoEdicaoAnexoVendedor" class="modo-edicao">✎ MODO EDIÇÃO</small>
+            </div>
+          </div>
+        </form>
+
+        <div class="table-wrapper">
+          <table class="striped bordered">
+            <thead>
+              <tr><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="tabelaAnexosVendedor"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+<!-- 5) Pré-Análise -->
+<div class="form-section">
+  <h5>📋 Pré-Análise</h5>
+
+  <!-- Campo Valor Solicitado -->
+  <div class="row" style="margin-bottom: 1rem;">
+  <div class="form__input col s12 m4">
+    <label for="valorSolicitado">Valor Solicitado (R$)</label>
+    <input type="text" id="valorSolicitado" class="moeda-input" placeholder="0,00">
+  </div>
+</div>
+
+
+
+  <!-- Botão -->
+  <div style="margin-bottom:12px;">
+    <button type="button" class="btn btn-add btn-square" onclick="realizarPreAnalise()">
+      <i class="material-icons left">fact_check</i>REALIZAR PRÉ-ANÁLISE
+    </button>
+  </div>
+
+  <!-- Resultados da pré-análise -->
+  <div id="preAnaliseWrapper" style="display:none;">
+    <h6 style="margin-bottom:8px; color:#1976d2;">
+      Conformidade com a Resolução do CMN nº 5193/2024
+    </h6>
+    <table class="striped bordered highlight">
+      <thead>
+        <tr>
+          <th>Critério</th>
+          <th class="center-align">Resultado</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaPreAnalise"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- Estimativa de valor do imóvel -->
+<div id="estimativaValorWrapper" style="display:none; margin-top:20px;">
+  <h6 style="margin-bottom:8px; color:#1976d2;">
+    Estimativa de Valor do Imóvel
+  </h6>
+  <table class="striped bordered highlight">
+    <thead>
+      <tr>
+        <th>Valor Total Mínimo</th>
+        <th>Valor Total</th>
+        <th>Valor Total Máximo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td id="valorMin">R$ 154.252,14</td>
+        <td id="valorTotal">R$ 421.723,56</td>
+        <td id="valorMax">R$ 876.509,70</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Frase de pré-análise -->
+  <p id="avaliacaoViabilidade" style="margin-top:12px; font-weight:600; color:#256029;">
+    Avaliação da viabilidade do imóvel para prosseguimento no PNCF: <span id="resultadoViabilidade"></span>
+  </p>
+</div>
+
+
+
+
+      <div class="right-align" style="margin-top:12px;">
+        <a class="btn btn-danger btn-square waves-effect">CANCELAR</a>
+        <button class="btn btn-add btn-square waves-effect"><i class="material-icons left">arrow_forward</i>AVANÇAR</button>
+      </div>
+
+
+
+      <!-- 3) finaliza blocos -->
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+  /* Estado */
+  let listaImoveis = JSON.parse(localStorage.getItem("imoveis") || "[]");
+  let listaVendedores = JSON.parse(localStorage.getItem("vendedores") || "[]");
+  let editandoImovel = null, editandoVendedor = null;
+
+  let anexosImovel = JSON.parse(localStorage.getItem("anexosImovel") || "[]");
+  let anexosVendedor = JSON.parse(localStorage.getItem("anexosVendedor") || "[]");
+  let editandoAnexo = { imovel: null, vendedor: null };
+
+  const bancoFicticioImovel = {
+    "111.111.111.111-1": {
+      codigoImovel: "797733f2-8a47-4c41-9fe6-52f661a4463e", status: "CERTIFICADA",
+      areaHectares: "261,01", nomeArea: "VENEZA - DATA CAJAZEIRAS", registroCns: "07.830-3",
+      registroMatricula: "12685", municipio: "UNIÃO", uf: "PE"
+    }
+  };
+  const bancoFicticioVendedor = {
+    "111.111.111-11": {
+      nome: "MARIA DE SOUZA", nascimento: "15/03/1980", cep: "50000-000",
+      uf: "PE", municipio: "Recife", bairro: "Boa Vista", endereco: "Rua das Flores, 123"
+    }
+  };
+
+  function mostrarMensagem(texto, tipo="sucesso") {
+    const msgBox = document.getElementById("mensagem");
+    msgBox.innerText = texto;
+    msgBox.className = tipo === "erro" ? "msg-erro" : "msg-sucesso";
+    msgBox.style.display = "block";
+    setTimeout(() => { msgBox.style.display = "none"; }, 4000);
+  }
+
+  /* SNCR */
+  const sncrInput = document.getElementById("parcelaCodigo");
+  function formatarSNCR(d) {
+    const digits = d.replace(/\D/g, "").slice(0, 13);
+    let out = "";
+    if (digits.length > 0) out = digits.substring(0, 3);
+    if (digits.length > 3) out += "." + digits.substring(3, 6);
+    if (digits.length > 6) out += "." + digits.substring(6, 9);
+    if (digits.length > 9) out += "." + digits.substring(9, 12);
+    if (digits.length > 12) out += "-" + digits.substring(12, 13);
+    return out;
+  }
+  sncrInput.addEventListener("input", e => e.target.value = formatarSNCR(e.target.value));
+  sncrInput.addEventListener("blur", preencherPorSNCR);
+  function preencherPorSNCR() {
+    const sncr = sncrInput.value.trim();
+    if (!sncr || !bancoFicticioImovel[sncr]) return;
+    preencherCamposImovel(bancoFicticioImovel[sncr]);
+  }
+  function preencherCamposImovel(d) {
+    document.getElementById("codigoImovel").value = d.codigoImovel || "";
+    document.getElementById("status").value = d.status || "";
+    document.getElementById("areaHectares").value = d.areaHectares || "";
+    document.getElementById("nomeArea").value = d.nomeArea || "";
+    document.getElementById("registroCns").value = d.registroCns || "";
+    document.getElementById("registroMatricula").value = d.registroMatricula || "";
+    document.getElementById("municipio").value = d.municipio || "";
+    document.getElementById("uf").value = d.uf || "";
+  }
+
+  function salvarImovel() {
+    const sncr = sncrInput.value.trim();
+    if (!sncr) { mostrarMensagem("Digite o SNCR!", "erro"); return; }
+    const dados = bancoFicticioImovel[sncr];
+    if (!dados) { mostrarMensagem("SNCR não encontrado.", "erro"); return; }
+    if (editandoImovel !== null) {
+      listaImoveis[editandoImovel] = { parcelaCodigo: sncr, ...dados };
+      mostrarMensagem("Imóvel atualizado com sucesso!");
+      editandoImovel = null;
+      document.querySelector("#formElegibilidade button[type=submit]").innerHTML = '<i class="material-icons left">add</i>ADICIONAR DADOS NA TABELA';
+      document.getElementById("modoEdicaoImovel").style.display = "none";
+    } else {
+      listaImoveis.push({ parcelaCodigo: sncr, ...dados });
+      mostrarMensagem("Imóvel adicionado com sucesso!");
+    }
+    localStorage.setItem("imoveis", JSON.stringify(listaImoveis));
+    renderTabelaImoveis(); document.getElementById("formElegibilidade").reset(); sncrInput.value = "";
+  }
+  function excluirImovel(idx) {
+    listaImoveis.splice(idx, 1);
+    localStorage.setItem("imoveis", JSON.stringify(listaImoveis));
+    renderTabelaImoveis(); mostrarMensagem("Imóvel excluído com sucesso!");
+  }
+  function editarImovel(idx) {
+    const imv = listaImoveis[idx];
+    sncrInput.value = imv.parcelaCodigo; preencherCamposImovel(imv);
+    editandoImovel = idx;
+    document.querySelector("#formElegibilidade button[type=submit]").innerHTML = '<i class="material-icons left">edit</i>ATUALIZAR';
+    document.getElementById("modoEdicaoImovel").style.display = "inline";
+    mostrarMensagem("Editando imóvel selecionado...");
+  }
+  function renderTabelaImoveis() {
+    const tbody = document.getElementById("tabelaImoveis");
+    tbody.innerHTML = "";
+    listaImoveis.forEach((imv, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${imv.parcelaCodigo}</td><td>${imv.codigoImovel}</td><td>${imv.status}</td>
+        <td>${imv.areaHectares}</td><td>${imv.nomeArea}</td><td>${imv.registroCns}</td>
+        <td>${imv.registroMatricula}</td><td>${imv.municipio}</td><td>${imv.uf}</td>
+        <td>
+          <button class="action-btn" onclick="editarImovel(${idx})"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirImovel(${idx})"><i class="material-icons">delete</i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* Vendedor */
+  const cpfInput = document.getElementById("cpfVendedor");
+  function formatarCPF(v) {
+    const digits = v.replace(/\D/g, "").slice(0, 11);
+    let out = "";
+    if (digits.length > 0) out = digits.substring(0, 3);
+    if (digits.length > 3) out += "." + digits.substring(3, 6);
+    if (digits.length > 6) out += "." + digits.substring(6, 9);
+    if (digits.length > 9) out += "-" + digits.substring(9, 11);
+    return out;
+  }
+  cpfInput.addEventListener("input", e => e.target.value = formatarCPF(e.target.value));
+  cpfInput.addEventListener("blur", preencherPorCPF);
+  function preencherPorCPF() {
+    const cpf = cpfInput.value.trim();
+    if (!cpf || !bancoFicticioVendedor[cpf]) return;
+    preencherCamposVendedor(bancoFicticioVendedor[cpf]);
+  }
+  function preencherCamposVendedor(d) {
+    document.getElementById("nomeVendedor").value = d.nome || "";
+    document.getElementById("nascimento").value = d.nascimento || "";
+    document.getElementById("cepVendedor").value = d.cep || "";
+    document.getElementById("ufVendedor").value = d.uf || "";
+    document.getElementById("municipioVendedor").value = d.municipio || "";
+    document.getElementById("bairroVendedor").value = d.bairro || "";
+    document.getElementById("enderecoVendedor").value = d.endereco || "";
+  }
+  function salvarVendedor() {
+    const cpf = cpfInput.value.trim();
+    if (!cpf) { mostrarMensagem("Digite o CPF!", "erro"); return; }
+    const novoVendedor = {
+      cpf, nome: document.getElementById("nomeVendedor").value,
+      nascimento: document.getElementById("nascimento").value, cep: document.getElementById("cepVendedor").value,
+      uf: document.getElementById("ufVendedor").value, municipio: document.getElementById("municipioVendedor").value,
+      bairro: document.getElementById("bairroVendedor").value, endereco: document.getElementById("enderecoVendedor").value,
+      email: document.getElementById("emailVendedor").value, celular: document.getElementById("celularVendedor").value,
+      estadoCivil: document.getElementById("estadoCivil").value
+    };
+    if (editandoVendedor !== null) {
+      listaVendedores[editandoVendedor] = novoVendedor;
+      mostrarMensagem("Vendedor atualizado com sucesso!");
+      editandoVendedor = null;
+      document.querySelector("#formVendedor button[type=submit]").innerHTML = '<i class="material-icons left">add</i>ADICIONAR DADOS NA TABELA';
+      document.getElementById("modoEdicaoVendedor").style.display = "none";
+    } else {
+      listaVendedores.push(novoVendedor);
+      mostrarMensagem("Vendedor adicionado com sucesso!");
+    }
+    localStorage.setItem("vendedores", JSON.stringify(listaVendedores));
+    renderTabelaVendedores(); document.getElementById("formVendedor").reset(); cpfInput.value = "";
+  }
+  function excluirVendedor(idx) {
+    listaVendedores.splice(idx, 1);
+    localStorage.setItem("vendedores", JSON.stringify(listaVendedores));
+    renderTabelaVendedores(); mostrarMensagem("Vendedor excluído com sucesso!");
+  }
+  function editarVendedor(idx) {
+    const vend = listaVendedores[idx];
+    cpfInput.value = vend.cpf;
+    document.getElementById("nomeVendedor").value = vend.nome;
+    document.getElementById("nascimento").value = vend.nascimento;
+    document.getElementById("cepVendedor").value = vend.cep;
+    document.getElementById("ufVendedor").value = vend.uf;
+    document.getElementById("municipioVendedor").value = vend.municipio;
+    document.getElementById("bairroVendedor").value = vend.bairro;
+    document.getElementById("enderecoVendedor").value = vend.endereco;
+    document.getElementById("emailVendedor").value = vend.email;
+    document.getElementById("celularVendedor").value = vend.celular;
+    document.getElementById("estadoCivil").value = vend.estadoCivil || "";
+
+    editandoVendedor = idx;
+    document.querySelector("#formVendedor button[type=submit]").innerHTML = '<i class="material-icons left">edit</i>ATUALIZAR';
+    document.getElementById("modoEdicaoVendedor").style.display = "inline";
+    mostrarMensagem("Editando vendedor selecionado...");
+  }
+  function renderTabelaVendedores() {
+    const tbody = document.getElementById("tabelaVendedores");
+    tbody.innerHTML = "";
+    listaVendedores.forEach((vend, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${vend.cpf}</td><td>${vend.nome}</td><td>${vend.nascimento}</td>
+        <td>${vend.cep}</td><td>${vend.uf}</td><td>${vend.municipio}</td>
+        <td>${vend.bairro}</td><td>${vend.endereco}</td><td>${vend.email}</td>
+        <td>${vend.celular}</td><td>${vend.estadoCivil}</td>
+        <td>
+          <button class="action-btn" onclick="editarVendedor(${idx})"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirVendedor(${idx})"><i class="material-icons">delete</i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* Anexos */
+  document.getElementById('arquivoImovel').addEventListener('change', (e)=>{
+    document.getElementById('nomeArquivoImovel').value = e.target.files?.[0]?.name || '';
+  });
+  document.getElementById('arquivoVendedor').addEventListener('change', (e)=>{
+    document.getElementById('nomeArquivoVendedor').value = e.target.files?.[0]?.name || '';
+  });
+
+  function salvarOuAtualizarAnexo(tipo) {
+    const select = document.getElementById('tipoAnexo' + capitalize(tipo));
+    const inputFile = document.getElementById('arquivo' + capitalize(tipo));
+    const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
+
+    if (!select.value || !inputFile.files.length) {
+      mostrarMensagem("Selecione o tipo de documento e um arquivo PDF.", "erro"); return;
+    }
+    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
+    const idxEdit = editandoAnexo[tipo];
+
+    if (idxEdit === null) {
+      lista.push({ documento: select.value, arquivo: inputFile.files[0].name });
+      mostrarMensagem("Anexo adicionado com sucesso!");
+    } else {
+      lista[idxEdit].documento = select.value;
+      if (inputFile.files[0]) lista[idxEdit].arquivo = inputFile.files[0].name;
+      editandoAnexo[tipo] = null;
+      document.getElementById('btnAddUpd' + capitalize(tipo)).innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
+      document.getElementById('modoEdicaoAnexo' + capitalize(tipo)).style.display = 'none';
+      mostrarMensagem("Anexo atualizado com sucesso!");
+    }
+
+    if (tipo === 'imovel') {
+      anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
+      renderTabelaAnexos('imovel');
+    } else {
+      anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
+      renderTabelaAnexos('vendedor');
+    }
+
+    select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
+  }
+
+  function renderTabelaAnexos(tipo) {
+    const tbody = document.getElementById('tabelaAnexos' + capitalize(tipo));
+    tbody.innerHTML = "";
+    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
+
+    lista.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.documento}</td>
+        <td>${item.arquivo}</td>
+        <td>
+          <button class="action-btn" onclick="editarAnexo('${tipo}', ${idx})" title="Editar"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirAnexo('${tipo}', ${idx})" title="Excluir"><i class="material-icons">delete</i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function editarAnexo(tipo, idx) {
+    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
+    const item = lista[idx];
+    const select = document.getElementById('tipoAnexo' + capitalize(tipo));
+    const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
+
+    select.value = item.documento;
+    nomeEspelho.value = item.arquivo;
+
+    editandoAnexo[tipo] = idx;
+    document.getElementById('btnAddUpd' + capitalize(tipo)).innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
+    document.getElementById('modoEdicaoAnexo' + capitalize(tipo)).style.display = 'inline';
+    mostrarMensagem(`Editando anexo de ${tipo}...`);
+  }
+
+  function excluirAnexo(tipo, idx) {
+    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
+    lista.splice(idx, 1);
+    if (tipo === 'imovel') {
+      anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
+    } else {
+      anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
+    }
+    renderTabelaAnexos(tipo);
+    mostrarMensagem("Anexo excluído com sucesso!");
+  }
+
+  function capitalize(str){return str.charAt(0).toUpperCase()+str.slice(1);}
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    renderTabelaImoveis();
+    renderTabelaVendedores();
+    renderTabelaAnexos('imovel');
+    renderTabelaAnexos('vendedor');
+  });
+
+
+
+function realizarPreAnalise(){
+  const valor = document.getElementById("valorSolicitado").value.trim();
+  if(!valor){
+    mostrarMensagem("Digite o Valor Solicitado antes da pré-análise!", "erro");
+    return;
+  }
+
+  // -----------------------------
+  // Parte 1: Conformidade CMN
+  // -----------------------------
+  const criterios = [
+    "Quanto à situação do CAR",
+    "Quanto à sobreposição com Unidades de Conservação",
+    "Quanto à sobreposição com Terra Indígena",
+    "Quanto à sobreposição com Territórios Quilombolas",
+    "Quanto à existência de embargo ambiental por desmatamento ilegal",
+    "Quanto à sobreposição com Floresta tipo B",
+    "Quanto à supressão de vegetação nativa (desmatamento pós 2019)"
+  ];
+
+  const resultados = criterios.map(c => ({
+    criterio: c,
+    resultado: "Sim"
+  }));
+
+  const resultadoFinal = {
+    criterio: "Imóvel conforme Resolução do CMN nº 5193 de 2024",
+    resultado: "Sim",
+    final: true
+  };
+
+  const tbody = document.getElementById("tabelaPreAnalise");
+  tbody.innerHTML = "";
+
+  resultados.forEach(item=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.criterio}</td>
+      <td><span class="badge-sim"><i class="material-icons">check_circle</i>${item.resultado}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const trFinal = document.createElement("tr");
+  trFinal.classList.add("preanalise-final");
+  trFinal.innerHTML = `
+    <td>${resultadoFinal.criterio}</td>
+    <td><i class="material-icons">check_circle</i> ${resultadoFinal.resultado}</td>
+  `;
+  tbody.appendChild(trFinal);
+
+  document.getElementById("preAnaliseWrapper").style.display = "block";
+
+  // -----------------------------
+  // Parte 2: Estimativa de Valor
+  // -----------------------------
+  const min = 154252.14;
+  const total = 421723.56;
+  const max = 876509.70;
+
+  // Converter valor digitado para número
+  const valorNum = parseFloat(valor.replace(/\./g, "").replace(",", "."));
+
+  let avaliacao = "Indefinida";
+  if(valorNum >= min && valorNum <= max){
+    avaliacao = "Viável (valor dentro da faixa de referência)";
+    document.getElementById("avaliacaoViabilidade").style.color = "#256029"; // verde
+  } else {
+    avaliacao = "Não viável (valor fora da faixa de referência)";
+    document.getElementById("avaliacaoViabilidade").style.color = "#b71c1c"; // vermelho
+  }
+
+  document.getElementById("resultadoViabilidade").innerText = avaliacao;
+  document.getElementById("estimativaValorWrapper").style.display = "block";
+}
+
+</script>
+</body>
+</html>
