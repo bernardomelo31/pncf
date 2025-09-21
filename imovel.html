@@ -9,148 +9,82 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
 
   <style>
-/* Campo moeda - mesma altura e estilo dos demais */
-.moeda-input {
-  text-align: right;                /* alinha valor à direita */
-  font-weight: 600;                 /* dá destaque */
+/* Campo moeda */
+.moeda-input{
+  text-align:right;
+  font-weight:600;
 }
 
 /* ===== Pré-Análise ===== */
-#preAnaliseWrapper table {
-  margin-top: 1rem;
-  width: 100%;
+#preAnaliseWrapper table { margin-top:1rem; width:100%; }
+#preAnaliseWrapper td { padding:10px; }
+#preAnaliseWrapper td:last-child { width:120px; font-weight:bold; text-align:center; }
+
+/* Badge SIM/NÃO */
+.badge-sim{ background:#e6f4ea; color:#145a32; border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; }
+.badge-nao{ background:#fdecea; color:#b71c1c; border-radius:20px; padding:6px 14px; display:inline-flex; align-items:center; gap:6px; }
+.badge-sim i,.badge-nao i{ font-size:18px; }
+
+/* Linha final */
+.preanalise-final{ background:#2e7d32 !important; color:#fff !important; font-weight:bold; }
+
+body{ background:#fafafa; padding:20px; }
+.btn-square{ border-radius:0 !important; }
+th{ font-weight:bold; text-align:left; }
+.action-btn{ background:none; border:none; cursor:pointer; margin:0 4px; color:#444; }
+.action-btn .material-icons{ font-size:20px; vertical-align:middle; }
+
+.form-section{ margin-top:1.5rem; padding:1rem; background:#fff; border:1px solid #ddd; }
+.form-section h5{ margin-bottom:.8rem; color:#1976d2; }
+
+.table-wrapper{ overflow-x:auto; margin-top:1rem; }
+table.striped tbody tr:nth-child(odd){ background-color:#f9f9f9; }
+
+#mensagem{ display:none; padding:8px; margin-bottom:1rem; border-radius:4px; font-weight:600; }
+.msg-sucesso{ background:#c8e6c9; color:#256029; }
+.msg-erro{ background:#ffcdd2; color:#b71c1c; }
+
+/* Layout inputs */
+.row{ display:flex; flex-wrap:wrap; gap:1rem; }
+.form__input{ flex:1; }
+.form__input label{ display:block; margin-bottom:4px; font-weight:600; color:#444; }
+
+.btn,.btn-add,.file-field .btn{ height:44px !important; line-height:44px !important; }
+
+/* Inputs/selects */
+.input-field input,.form__input input,.form__input select,select.browser-default{
+  height:44px !important; line-height:normal !important; padding:8px 10px !important;
+  box-sizing:border-box; border:1px solid #cfd8dc !important; border-radius:4px !important;
+  background:#fff !important; margin:0 !important;
 }
-#preAnaliseWrapper td {
-  padding: 10px;
+input[type="email"]{ line-height:normal !important; }
+.input-field input[readonly]{ background:#f9f9f9 !important; }
+
+/* Botões tema */
+.btn-add{ background:#1976d2 !important; color:#fff !important; }
+.btn-danger{ background:#b71c1c !important; color:#fff !important; }
+.modo-edicao{ color:#b71c1c; font-weight:bold; display:none; margin-top:5px; }
+
+/* File-field */
+.file-field .file-path-wrapper{ display:none !important; }
+.file-field .btn{ padding:0 16px !important; display:inline-flex !important; align-items:center; justify-content:center; box-sizing:border-box; }
+.file-field .btn i{ font-size:20px; line-height:1 !important; margin-right:8px; }
+
+/* Grid Anexos */
+.anexo-grid{
+  display:grid; grid-template-columns:minmax(260px,1fr) 160px minmax(360px,1.6fr) auto;
+  gap:12px; align-items:start;
 }
-#preAnaliseWrapper td:last-child {
-  width: 120px;
-  font-weight: bold;
-  text-align: center;
-}
+@media (max-width: 992px){ .anexo-grid{ grid-template-columns:1fr; } }
+.anexo-grid .input-field,.anexo-grid .form__input{ margin-top:0 !important; }
+.anexo-grid > :nth-child(2),.anexo-grid > :nth-child(4){ padding-top:24px; }
 
-/* Badge SIM */
-.badge-sim {
-  background: #e6f4ea;       /* verde claro já usado no print */
-  color: #145a32;            /* verde escuro texto */
-  border-radius: 20px;
-  padding: 6px 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.badge-sim i { font-size: 18px; }
+/* Tipo de Laudo */
+#descricaoTipoLaudo{ background:#f5faff; border:1px solid #cfd8dc; border-radius:6px; }
+.laudo-disabled{ opacity:.55; pointer-events:none; user-select:none; }
 
-/* Badge NÃO */
-.badge-nao {
-  background: #fdecea;       /* vermelho claro */
-  color: #b71c1c;            /* vermelho escuro texto */
-  border-radius: 20px;
-  padding: 6px 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.badge-nao i { font-size: 18px; }
-
-/* Linha final destacada */
-.preanalise-final {
-  background: #2e7d32 !important;  /* verde institucional */
-  color: #fff !important;
-  font-weight: bold;
-}
-    body { background: #fafafa; padding: 20px; }
-    .btn-square { border-radius: 0 !important; }
-    th { font-weight: bold; text-align: left; }
-    .action-btn { background: none; border: none; cursor: pointer; margin: 0 4px; color: #444; }
-    .action-btn .material-icons { font-size: 20px; vertical-align: middle; }
-
-    .form-section { margin-top: 1.5rem; padding: 1rem; background: #fff; border: 1px solid #ddd; }
-    .form-section h5 { margin-bottom: .8rem; color: #1976d2; }
-
-    .table-wrapper { overflow-x: auto; margin-top: 1rem; }
-    table.striped tbody tr:nth-child(odd) { background-color: #f9f9f9; }
-
-    #mensagem { display: none; padding: 8px; margin-bottom: 1rem; border-radius: 4px; font-weight: 600; }
-    .msg-sucesso { background: #c8e6c9; color: #256029; }
-    .msg-erro { background: #ffcdd2; color: #b71c1c; }
-
-    /* ===== Layout/inputs ===== */
-    .row { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .form__input { flex: 1; }
-    .form__input label { display: block; margin-bottom: 4px; font-weight: 600; color: #444; }
-
-    /* Botões: altura/line-height iguais */
-    .btn,
-    .btn-add,
-    .file-field .btn {
-      height: 44px !important;
-      line-height: 44px !important;
-    }
-
-    /* Inputs/selects: altura 44 mas sem line-height 44; inclui padding na altura */
-    .input-field input,
-    .form__input input,
-    .form__input select,
-    select.browser-default {
-      height: 44px !important;
-      line-height: normal !important;
-      padding: 8px 10px !important;
-      box-sizing: border-box;
-      border: 1px solid #cfd8dc !important;
-      border-radius: 4px !important;
-      background: #fff !important;
-      margin: 0 !important;
-    }
-    input[type="email"] { line-height: normal !important; }
-    .input-field input[readonly] { background: #f9f9f9 !important; }
-
-    /* Botões tema */
-    .btn-add { background: #1976d2 !important; color: #fff !important; }
-    .btn-danger { background: #b71c1c !important; color: #fff !important; }
-
-    .modo-edicao { color:#b71c1c; font-weight:bold; display:none; margin-top:5px; }
-
-    /* ===== File-field ===== */
-    .file-field .file-path-wrapper { display: none !important; } /* não vamos usar o path do materialize */
-    .file-field .btn{
-      height: 44px !important;
-      line-height: 44px !important;
-      padding: 0 16px !important;       /* sem padding vertical */
-      display: inline-flex !important;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-    .file-field .btn i{
-      font-size: 20px;
-      line-height: 1 !important;
-      margin-right: 8px;
-    }
-    .file-field .btn span{ line-height: 1 !important; }
-
-    /* ===== Grid dos Anexos ===== */
-    .anexo-grid{
-      display: grid;
-      /* select | ESCOLHER | nome | ADICIONAR */
-      grid-template-columns: minmax(260px,1fr) 160px minmax(360px,1.6fr) auto;
-      gap: 12px;
-      align-items: start;     /* alinha pelo topo (labels) */
-    }
-    @media (max-width: 992px){ .anexo-grid{ grid-template-columns: 1fr; } }
-    .anexo-grid .input-field, .anexo-grid .form__input{ margin-top: 0 !important; }
-
-    /* as colunas de botões não têm label → damos o mesmo “offset” do label */
-    .anexo-grid > :nth-child(2),
-    .anexo-grid > :nth-child(4){ padding-top: 24px; }
-
-    /* garantia extra dentro do grid */
-    .anexo-grid input[type="text"],
-    .anexo-grid select.browser-default{
-      height: 44px !important;
-      line-height: normal !important;
-      box-sizing: border-box;
-    }
+/* Aviso reavaliação */
+#msgReavaliar{ display:none; margin-top:10px; padding:10px; border-radius:6px; background:#fff3e0; color:#8d4b00; border:1px solid #ffcc80; }
   </style>
 </head>
 <body>
@@ -169,7 +103,7 @@
 
       <!-- 1) Imóvel -->
       <div class="form-section">
-        <h5>Dados do Imóvel</h5>
+        <h5><i class="material-icons left" style="color:#1976d2; margin-right:6px;">home</i>Dados do Imóvel</h5>
         <form id="formElegibilidade" onsubmit="event.preventDefault(); salvarImovel();">
           <div class="row">
             <div class="form__input col s12 m4">
@@ -238,7 +172,7 @@
 
       <!-- 2) Vendedor -->
       <div class="form-section">
-        <h5>Dados do Vendedor</h5>
+        <h5><i class="material-icons left" style="color:#1976d2; margin-right:6px;">person</i>Dados do Vendedor</h5>
         <form id="formVendedor" onsubmit="event.preventDefault(); salvarVendedor();">
           <div class="row">
             <div class="form__input col s12 m4">
@@ -423,92 +357,116 @@
         </div>
       </div>
 
+      <!-- 5) Pré-Análise -->
+      <div class="form-section">
+        <h5>📋 Pré-Análise</h5>
 
-<!-- 5) Pré-Análise -->
-<div class="form-section">
-  <h5>📋 Pré-Análise</h5>
+        <div class="row" style="margin-bottom:1rem;">
+          <div class="form__input col s12 m4">
+            <label for="valorSolicitado">Valor Solicitado (R$)</label>
+            <input type="text" id="valorSolicitado" class="moeda-input" placeholder="0,00" value="0,00">
+          </div>
+        </div>
 
-  <!-- Campo Valor Solicitado -->
-  <div class="row" style="margin-bottom: 1rem;">
-  <div class="form__input col s12 m4">
-    <label for="valorSolicitado">Valor Solicitado (R$)</label>
-    <input type="text" id="valorSolicitado" class="moeda-input" placeholder="0,00">
-  </div>
-</div>
+        <div style="margin-bottom:12px;">
+          <button type="button" class="btn btn-add btn-square" onclick="realizarPreAnalise()">
+            <i class="material-icons left">fact_check</i>REALIZAR PRÉ-ANÁLISE
+          </button>
+        </div>
 
+        <div id="preAnaliseWrapper" style="display:none;">
+          <h6 style="margin-bottom:8px; color:#1976d2;">Conformidade com a Resolução do CMN nº 5193/2024</h6>
+          <table class="striped bordered highlight">
+            <thead>
+              <tr><th>Critério</th><th class="center-align">Resultado</th></tr>
+            </thead>
+            <tbody id="tabelaPreAnalise"></tbody>
+          </table>
+        </div>
+      </div>
 
+      <!-- Estimativa de valor do imóvel -->
+      <div id="estimativaValorWrapper" style="display:none; margin-top:20px;">
+        <h6 style="margin-bottom:8px; color:#1976d2;">Estimativa de Valor do Imóvel</h6>
+        <table class="striped bordered highlight">
+          <thead>
+            <tr><th>Valor Total Mínimo</th><th>Valor Total</th><th>Valor Total Máximo</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="valorMin">R$ 154.252,14</td>
+              <td id="valorTotal">R$ 421.723,56</td>
+              <td id="valorMax">R$ 876.509,70</td>
+            </tr>
+          </tbody>
+        </table>
+        <p id="avaliacaoViabilidade" style="margin-top:12px; font-weight:600; color:#256029;">
+          Avaliação da viabilidade do imóvel para prosseguimento no PNCF: <span id="resultadoViabilidade"></span>
+        </p>
+        <div id="msgReavaliar"></div>
+      </div>
 
-  <!-- Botão -->
-  <div style="margin-bottom:12px;">
-    <button type="button" class="btn btn-add btn-square" onclick="realizarPreAnalise()">
-      <i class="material-icons left">fact_check</i>REALIZAR PRÉ-ANÁLISE
-    </button>
-  </div>
+      <!-- 6) Laudo de Avaliação - Tipo (bloqueado até ser viável) -->
+      <div id="laudoSection" class="form-section laudo-disabled">
+        <h5 style="display:flex; align-items:center; gap:8px;">Laudo de Avaliação</h5>
 
-  <!-- Resultados da pré-análise -->
-  <div id="preAnaliseWrapper" style="display:none;">
-    <h6 style="margin-bottom:8px; color:#1976d2;">
-      Conformidade com a Resolução do CMN nº 5193/2024
-    </h6>
-    <table class="striped bordered highlight">
-      <thead>
-        <tr>
-          <th>Critério</th>
-          <th class="center-align">Resultado</th>
-        </tr>
-      </thead>
-      <tbody id="tabelaPreAnalise"></tbody>
-    </table>
-  </div>
-</div>
+        <div class="row" style="margin-bottom:0;">
+          <div class="form__input col s12 m5">
+            <label style="display:flex; align-items:center; gap:6px;">
+              <span>Tipo de Laudo</span>
+              <i class="material-icons tooltipped" data-position="right"
+                 data-tooltip="Escolha o nível de detalhamento do laudo. Disponível apenas quando a pré-análise for viável.">help_outline</i>
+            </label>
 
+            <p style="margin-top:8px;">
+              <label>
+                <input class="with-gap" name="tipoLaudo" type="radio" value="supersimples" disabled />
+                <span>Laudo Super Simples</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" name="tipoLaudo" type="radio" value="simples" disabled />
+                <span>Laudo Simples</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" name="tipoLaudo" type="radio" value="simplificado" disabled />
+                <span>Laudo Simplificado</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" name="tipoLaudo" type="radio" value="completo" disabled />
+                <span>Laudo Completo</span>
+              </label>
+            </p>
+          </div>
 
-<!-- Estimativa de valor do imóvel -->
-<div id="estimativaValorWrapper" style="display:none; margin-top:20px;">
-  <h6 style="margin-bottom:8px; color:#1976d2;">
-    Estimativa de Valor do Imóvel
-  </h6>
-  <table class="striped bordered highlight">
-    <thead>
-      <tr>
-        <th>Valor Total Mínimo</th>
-        <th>Valor Total</th>
-        <th>Valor Total Máximo</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td id="valorMin">R$ 154.252,14</td>
-        <td id="valorTotal">R$ 421.723,56</td>
-        <td id="valorMax">R$ 876.509,70</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Frase de pré-análise -->
-  <p id="avaliacaoViabilidade" style="margin-top:12px; font-weight:600; color:#256029;">
-    Avaliação da viabilidade do imóvel para prosseguimento no PNCF: <span id="resultadoViabilidade"></span>
-  </p>
-</div>
-
-
-
+          <div class="col s12 m7">
+            <div id="descricaoTipoLaudo" class="card-panel" style="margin-top:28px; padding:12px;">
+              <b>Descrição:</b> a seleção do tipo de laudo libera após a pré-análise ser <b>Viável</b>.
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="right-align" style="margin-top:12px;">
         <a class="btn btn-danger btn-square waves-effect">CANCELAR</a>
-        <button class="btn btn-add btn-square waves-effect"><i class="material-icons left">arrow_forward</i>AVANÇAR</button>
+        <button id="btnAvancar" class="btn btn-add btn-square waves-effect">
+          <i class="material-icons left">arrow_forward</i>AVANÇAR
+        </button>
       </div>
 
-
-
-      <!-- 3) finaliza blocos -->
+      <!-- fim -->
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-  /* Estado */
+  /* ===== Estado ===== */
   let listaImoveis = JSON.parse(localStorage.getItem("imoveis") || "[]");
   let listaVendedores = JSON.parse(localStorage.getItem("vendedores") || "[]");
   let editandoImovel = null, editandoVendedor = null;
@@ -516,6 +474,9 @@
   let anexosImovel = JSON.parse(localStorage.getItem("anexosImovel") || "[]");
   let anexosVendedor = JSON.parse(localStorage.getItem("anexosVendedor") || "[]");
   let editandoAnexo = { imovel: null, vendedor: null };
+
+  const PRE_VIAVEL_KEY = "preAnaliseViavel";
+  const TIPO_LAUDO_KEY = "tipoLaudo";
 
   const bancoFicticioImovel = {
     "111.111.111.111-1": {
@@ -539,7 +500,7 @@
     setTimeout(() => { msgBox.style.display = "none"; }, 4000);
   }
 
-  /* SNCR */
+  /* ===== SNCR ===== */
   const sncrInput = document.getElementById("parcelaCodigo");
   function formatarSNCR(d) {
     const digits = d.replace(/\D/g, "").slice(0, 13);
@@ -610,14 +571,14 @@
         <td>${imv.areaHectares}</td><td>${imv.nomeArea}</td><td>${imv.registroCns}</td>
         <td>${imv.registroMatricula}</td><td>${imv.municipio}</td><td>${imv.uf}</td>
         <td>
-          <button class="action-btn" onclick="editarImovel(${idx})"><i class="material-icons">edit</i></button>
-          <button class="action-btn" onclick="excluirImovel(${idx})"><i class="material-icons">delete</i></button>
+          <button class="action-btn" onclick="editarImovel(${idx})" title="Editar"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirImovel(${idx})" title="Excluir"><i class="material-icons">delete</i></button>
         </td>`;
       tbody.appendChild(tr);
     });
   }
 
-  /* Vendedor */
+  /* ===== Vendedor ===== */
   const cpfInput = document.getElementById("cpfVendedor");
   function formatarCPF(v) {
     const digits = v.replace(/\D/g, "").slice(0, 11);
@@ -703,14 +664,14 @@
         <td>${vend.bairro}</td><td>${vend.endereco}</td><td>${vend.email}</td>
         <td>${vend.celular}</td><td>${vend.estadoCivil}</td>
         <td>
-          <button class="action-btn" onclick="editarVendedor(${idx})"><i class="material-icons">edit</i></button>
-          <button class="action-btn" onclick="excluirVendedor(${idx})"><i class="material-icons">delete</i></button>
+          <button class="action-btn" onclick="editarVendedor(${idx})" title="Editar"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirVendedor(${idx})" title="Excluir"><i class="material-icons">delete</i></button>
         </td>`;
       tbody.appendChild(tr);
     });
   }
 
-  /* Anexos */
+  /* ===== Anexos ===== */
   document.getElementById('arquivoImovel').addEventListener('change', (e)=>{
     document.getElementById('nomeArquivoImovel').value = e.target.files?.[0]?.name || '';
   });
@@ -723,16 +684,12 @@
     const inputFile = document.getElementById('arquivo' + capitalize(tipo));
     const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
 
-    if (!select.value || !inputFile.files.length) {
-      mostrarMensagem("Selecione o tipo de documento e um arquivo PDF.", "erro"); return;
-    }
+    if (!select.value || !inputFile.files.length) { mostrarMensagem("Selecione o tipo de documento e um arquivo PDF.", "erro"); return; }
     const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
     const idxEdit = editandoAnexo[tipo];
 
-    if (idxEdit === null) {
-      lista.push({ documento: select.value, arquivo: inputFile.files[0].name });
-      mostrarMensagem("Anexo adicionado com sucesso!");
-    } else {
+    if (idxEdit === null) { lista.push({ documento: select.value, arquivo: inputFile.files[0].name }); mostrarMensagem("Anexo adicionado com sucesso!"); }
+    else {
       lista[idxEdit].documento = select.value;
       if (inputFile.files[0]) lista[idxEdit].arquivo = inputFile.files[0].name;
       editandoAnexo[tipo] = null;
@@ -741,13 +698,8 @@
       mostrarMensagem("Anexo atualizado com sucesso!");
     }
 
-    if (tipo === 'imovel') {
-      anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
-      renderTabelaAnexos('imovel');
-    } else {
-      anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
-      renderTabelaAnexos('vendedor');
-    }
+    if (tipo === 'imovel') { anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel)); renderTabelaAnexos('imovel'); }
+    else { anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor)); renderTabelaAnexos('vendedor'); }
 
     select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
   }
@@ -788,102 +740,186 @@
   function excluirAnexo(tipo, idx) {
     const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
     lista.splice(idx, 1);
-    if (tipo === 'imovel') {
-      anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
-    } else {
-      anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
-    }
+    if (tipo === 'imovel') { anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel)); }
+    else { anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor)); }
     renderTabelaAnexos(tipo);
     mostrarMensagem("Anexo excluído com sucesso!");
   }
 
-  function capitalize(str){return str.charAt(0).toUpperCase()+str.slice(1);}
+  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
+  /* ===== Máscara BRL robusta ===== */
+  const valorSolicitadoInput = document.getElementById("valorSolicitado");
+  function formatBRLFromDigits(digits){
+    digits = digits.replace(/\D/g,"");
+    if (!digits) return "0,00";
+    if (digits.length === 1) digits = "0" + digits; // 5 -> 0,05
+    const inteiro = digits.slice(0, -2).replace(/^0+(?=\d)/,'') || "0";
+    const decimal = digits.slice(-2);
+    const inteiroFmt = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${inteiroFmt},${decimal}`;
+  }
+  function maskInputBRL(e){
+    const el = e.target;
+    const digits = el.value.replace(/\D/g,"");
+    el.value = formatBRLFromDigits(digits);
+  }
+  valorSolicitadoInput.addEventListener("input", maskInputBRL);
+  valorSolicitadoInput.addEventListener("focus", (e)=>{ if (!e.target.value) e.target.value="0,00"; });
+  valorSolicitadoInput.addEventListener("blur", (e)=>{ if (!e.target.value) e.target.value="0,00"; });
+
+  function parseBRL(v){ return parseFloat(v.replace(/\./g,"").replace(",",".") || "0"); }
+
+  /* ===== Tipo de Laudo (estado + UI) ===== */
+  const radiosTipoLaudo = () => Array.from(document.querySelectorAll('input[name="tipoLaudo"]'));
+  const painelDescricao = () => document.getElementById("descricaoTipoLaudo");
+  const descricoes = {
+    supersimples: "Aquisição 1:1 — um imóvel de um único vendedor para um único beneficiário (sem desmembramentos).",
+    simples: "Estrutura essencial, com documentação mínima e síntese do método de avaliação.",
+    simplificado: "Para imóveis com valor total até R$ 4.500.000,00 (menor complexidade documental).",
+    completo: "Para imóveis com valor total acima de R$ 4.500.000,00 ou casos mais complexos."
+  };
+  function setDescricao(tipo){
+    const box = painelDescricao();
+    if(!tipo){ box.innerHTML = "<b>Descrição:</b> a seleção do tipo de laudo libera após a pré-análise ser <b>Viável</b>."; return; }
+    box.innerHTML = `<b>Descrição:</b> ${descricoes[tipo] || ""}`;
+  }
+  function carregarTipoLaudo(){
+    const salvo = localStorage.getItem(TIPO_LAUDO_KEY);
+    if(!salvo) return;
+    radiosTipoLaudo().forEach(r=>{ r.checked = (r.value === salvo); });
+    setDescricao(salvo);
+  }
+  function escutarTipoLaudo(){
+    radiosTipoLaudo().forEach(r=>{
+      r.addEventListener("change", (e)=>{
+        localStorage.setItem(TIPO_LAUDO_KEY, e.target.value);
+        setDescricao(e.target.value);
+      });
+    });
+  }
+
+  function setLaudoEnabled(enabled){
+    const sec = document.getElementById("laudoSection");
+    if (enabled){
+      sec.classList.remove("laudo-disabled");
+      radiosTipoLaudo().forEach(r=> r.disabled = false);
+    } else {
+      sec.classList.add("laudo-disabled");
+      radiosTipoLaudo().forEach(r=> { r.checked = false; r.disabled = true; });
+      localStorage.removeItem(TIPO_LAUDO_KEY);
+      setDescricao(null);
+    }
+  }
+
+  /* ===== Inicializações Materialize ===== */
   document.addEventListener("DOMContentLoaded", ()=>{
+    if (window.M){
+      const selects = document.querySelectorAll("select:not(.browser-default)");
+      if (selects.length) M.FormSelect.init(selects);
+      const tips = document.querySelectorAll(".tooltipped");
+      if (tips.length) M.Tooltip.init(tips);
+    }
+
     renderTabelaImoveis();
     renderTabelaVendedores();
     renderTabelaAnexos('imovel');
     renderTabelaAnexos('vendedor');
+
+    escutarTipoLaudo();
+    carregarTipoLaudo();
+
+    // por padrão, laudo bloqueado até pré-análise
+    setLaudoEnabled(localStorage.getItem(PRE_VIAVEL_KEY) === "true");
   });
 
-
-
-function realizarPreAnalise(){
-  const valor = document.getElementById("valorSolicitado").value.trim();
-  if(!valor){
-    mostrarMensagem("Digite o Valor Solicitado antes da pré-análise!", "erro");
-    return;
-  }
-
-  // -----------------------------
-  // Parte 1: Conformidade CMN
-  // -----------------------------
-  const criterios = [
-    "Quanto à situação do CAR",
-    "Quanto à sobreposição com Unidades de Conservação",
-    "Quanto à sobreposição com Terra Indígena",
-    "Quanto à sobreposição com Territórios Quilombolas",
-    "Quanto à existência de embargo ambiental por desmatamento ilegal",
-    "Quanto à sobreposição com Floresta tipo B",
-    "Quanto à supressão de vegetação nativa (desmatamento pós 2019)"
-  ];
-
-  const resultados = criterios.map(c => ({
-    criterio: c,
-    resultado: "Sim"
-  }));
-
-  const resultadoFinal = {
-    criterio: "Imóvel conforme Resolução do CMN nº 5193 de 2024",
-    resultado: "Sim",
-    final: true
-  };
-
-  const tbody = document.getElementById("tabelaPreAnalise");
-  tbody.innerHTML = "";
-
-  resultados.forEach(item=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.criterio}</td>
-      <td><span class="badge-sim"><i class="material-icons">check_circle</i>${item.resultado}</span></td>
-    `;
-    tbody.appendChild(tr);
+  /* ===== Botão AVANÇAR ===== */
+  document.getElementById("btnAvancar").addEventListener("click", (e)=>{
+    const viavel = localStorage.getItem(PRE_VIAVEL_KEY) === "true";
+    if (!viavel){
+      e.preventDefault();
+      mostrarMensagem("Pré-análise não está viável. Negocie o preço com o vendedor para enquadrar no valor máximo permitido e refaça a pré-análise.", "erro");
+      return;
+    }
+    const selecionado = (localStorage.getItem(TIPO_LAUDO_KEY) || "").trim();
+    if(!selecionado){
+      e.preventDefault();
+      mostrarMensagem("Selecione o Tipo de Laudo para prosseguir.", "erro");
+      return;
+    }
+    mostrarMensagem(`Tipo de Laudo selecionado: ${selecionado.toUpperCase()}.`, "sucesso");
+    // Ex.: redirecionar:
+    // window.location.href = `laudo-${selecionado}.html`;
   });
 
-  const trFinal = document.createElement("tr");
-  trFinal.classList.add("preanalise-final");
-  trFinal.innerHTML = `
-    <td>${resultadoFinal.criterio}</td>
-    <td><i class="material-icons">check_circle</i> ${resultadoFinal.resultado}</td>
-  `;
-  tbody.appendChild(trFinal);
+  /* ===== Pré-análise ===== */
+  function realizarPreAnalise(){
+    const valor = valorSolicitadoInput.value.trim();
+    if(!valor){
+      mostrarMensagem("Digite o Valor Solicitado antes da pré-análise!", "erro");
+      return;
+    }
 
-  document.getElementById("preAnaliseWrapper").style.display = "block";
+    // Parte 1: Conformidade CMN (mock)
+    const criterios = [
+      "Quanto à situação do CAR",
+      "Quanto à sobreposição com Unidades de Conservação",
+      "Quanto à sobreposição com Terra Indígena",
+      "Quanto à sobreposição com Territórios Quilombolas",
+      "Quanto à existência de embargo ambiental por desmatamento ilegal",
+      "Quanto à sobreposição com Floresta tipo B",
+      "Quanto à supressão de vegetação nativa (desmatamento pós 2019)"
+    ];
+    const resultados = criterios.map(c => ({ criterio: c, resultado: "Sim" }));
+    const resultadoFinal = { criterio: "Imóvel conforme Resolução do CMN nº 5193 de 2024", resultado: "Sim", final: true };
 
-  // -----------------------------
-  // Parte 2: Estimativa de Valor
-  // -----------------------------
-  const min = 154252.14;
-  const total = 421723.56;
-  const max = 876509.70;
+    const tbody = document.getElementById("tabelaPreAnalise");
+    tbody.innerHTML = "";
+    resultados.forEach(item=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${item.criterio}</td><td><span class="badge-sim"><i class="material-icons">check_circle</i>${item.resultado}</span></td>`;
+      tbody.appendChild(tr);
+    });
+    const trFinal = document.createElement("tr");
+    trFinal.classList.add("preanalise-final");
+    trFinal.innerHTML = `<td>${resultadoFinal.criterio}</td><td><i class="material-icons">check_circle</i> ${resultadoFinal.resultado}</td>`;
+    tbody.appendChild(trFinal);
+    document.getElementById("preAnaliseWrapper").style.display = "block";
 
-  // Converter valor digitado para número
-  const valorNum = parseFloat(valor.replace(/\./g, "").replace(",", "."));
+    // Parte 2: Estimativa de Valor
+    const min = 154252.14, total = 421723.56, max = 876509.70;
+    const valorNum = parseBRL(valor);
 
-  let avaliacao = "Indefinida";
-  if(valorNum >= min && valorNum <= max){
-    avaliacao = "Viável (valor dentro da faixa de referência)";
-    document.getElementById("avaliacaoViabilidade").style.color = "#256029"; // verde
-  } else {
-    avaliacao = "Não viável (valor fora da faixa de referência)";
-    document.getElementById("avaliacaoViabilidade").style.color = "#b71c1c"; // vermelho
+    let avaliacao = "Indefinida";
+    let viavel = false;
+
+    if(valorNum >= min && valorNum <= max){
+      avaliacao = "Viável (valor dentro da faixa de referência)";
+      document.getElementById("avaliacaoViabilidade").style.color = "#256029";
+      viavel = true;
+      document.getElementById("msgReavaliar").style.display = "none";
+      document.getElementById("msgReavaliar").innerHTML = "";
+    } else {
+      avaliacao = "Não viável (valor fora da faixa de referência)";
+      document.getElementById("avaliacaoViabilidade").style.color = "#b71c1c";
+      viavel = false;
+      const maxFmt = "R$ 876.509,70";
+      const msg = `Operação deve ser reavaliada. Negocie com o vendedor para enquadrar no valor máximo permitido (${maxFmt}) e refaça a pré-análise.`;
+      const box = document.getElementById("msgReavaliar");
+      box.style.display = "block";
+      box.innerHTML = `<i class="material-icons" style="vertical-align:middle; margin-right:6px;">warning</i>${msg}`;
+    }
+
+    document.getElementById("resultadoViabilidade").innerText = avaliacao;
+    document.getElementById("estimativaValorWrapper").style.display = "block";
+
+    // Habilita/Desabilita Laudo de Avaliação conforme viabilidade
+    localStorage.setItem(PRE_VIAVEL_KEY, viavel ? "true" : "false");
+    setLaudoEnabled(viavel);
   }
 
-  document.getElementById("resultadoViabilidade").innerText = avaliacao;
-  document.getElementById("estimativaValorWrapper").style.display = "block";
-}
-
+  // Inicial: força máscara padrão
+  maskInputBRL({target: valorSolicitadoInput});
 </script>
 </body>
 </html>
