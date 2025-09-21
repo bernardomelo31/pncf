@@ -79,6 +79,16 @@ input[type="email"]{ line-height:normal !important; }
 .anexo-grid .input-field,.anexo-grid .form__input{ margin-top:0 !important; }
 .anexo-grid > :nth-child(2),.anexo-grid > :nth-child(4){ padding-top:24px; }
 
+/* Altura padronizada na grade de anexos (Imóvel/Vendedor) */
+.anexo-grid .btn,
+.anexo-grid input[type="text"],
+.anexo-grid select.browser-default{
+  height:44px !important;
+  line-height:44px !important;   /* centraliza o texto */
+  padding:0 12px !important;
+  box-sizing:border-box;
+}
+
 /* Tipo de Laudo */
 #descricaoTipoLaudo{ background:#f5faff; border:1px solid #cfd8dc; border-radius:6px; }
 .laudo-disabled{ opacity:.55; pointer-events:none; user-select:none; }
@@ -472,6 +482,10 @@ input[type="email"]{ line-height:normal !important; }
   const PRE_VIAVEL_KEY = "preAnaliseViavel";
   const TIPO_LAUDO_KEY = "tipoLaudo";
 
+  // Limiares do tipo de laudo
+  const LIM_SUPERSIMPLES = 250000;    // R$ 250 mil
+  const LIM_SIMPLIFICADO = 4500000;   // R$ 4,5 milhões
+
   const bancoFicticioImovel = {
     "111.111.111.111-1": {
       codigoImovel: "797733f2-8a47-4c41-9fe6-52f661a4463e", status: "CERTIFICADA",
@@ -747,7 +761,7 @@ input[type="email"]{ line-height:normal !important; }
   function formatBRLFromDigits(digits){
     digits = digits.replace(/\D/g,"");
     if (!digits) return "0,00";
-    if (digits.length === 1) digits = "0" + digits; // 5 -> 0,05
+    if (digits.length === 1) digits = "0" + digits;
     const inteiro = digits.slice(0, -2).replace(/^0+(?=\d)/,'') || "0";
     const decimal = digits.slice(-2);
     const inteiroFmt = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -761,16 +775,14 @@ input[type="email"]{ line-height:normal !important; }
   valorSolicitadoInput.addEventListener("input", maskInputBRL);
   valorSolicitadoInput.addEventListener("focus", (e)=>{ if (!e.target.value) e.target.value="0,00"; });
   valorSolicitadoInput.addEventListener("blur", (e)=>{ if (!e.target.value) e.target.value="0,00"; });
-
   function parseBRL(v){ return parseFloat(v.replace(/\./g,"").replace(",",".") || "0"); }
 
   /* ===== Tipo de Laudo (estado + UI) ===== */
   const radiosTipoLaudo = () => Array.from(document.querySelectorAll('input[name="tipoLaudo"]'));
   const painelDescricao = () => document.getElementById("descricaoTipoLaudo");
   const descricoes = {
-    supersimples: "Aquisição 1:1 — um imóvel de um único vendedor para um único beneficiário (sem desmembramentos).",
-    simples: "Estrutura essencial, com documentação mínima e síntese do método de avaliação.",
-    simplificado: "Para imóveis com valor total até R$ 4.500.000,00 (menor complexidade documental).",
+    supersimples: "Aquisição 1:1 — um único imóvel de um único vendedor para um único beneficiário (valor total até R$ 250.000,00).",
+    simplificado: "Para imóveis com valor total acima de R$ 250.000,00 e até R$ 4.500.000,00.",
     completo: "Para imóveis com valor total acima de R$ 4.500.000,00 ou casos mais complexos."
   };
   function setDescricao(tipo){
@@ -792,7 +804,6 @@ input[type="email"]{ line-height:normal !important; }
       });
     });
   }
-
   function setLaudoEnabled(enabled){
     const sec = document.getElementById("laudoSection");
     if (enabled){
@@ -804,6 +815,18 @@ input[type="email"]{ line-height:normal !important; }
       localStorage.removeItem(TIPO_LAUDO_KEY);
       setDescricao(null);
     }
+  }
+  function sugerirTipoLaudo(valorNum){
+    if (valorNum < LIM_SUPERSIMPLES) return "supersimples";
+    if (valorNum <= LIM_SIMPLIFICADO) return "simplificado";
+    return "completo";
+  }
+  function setTipoLaudo(tipo){
+    const radio = document.querySelector(`input[name="tipoLaudo"][value="${tipo}"]`);
+    if (!radio || radio.disabled) return;
+    radio.checked = true;
+    localStorage.setItem(TIPO_LAUDO_KEY, tipo);
+    setDescricao(tipo);
   }
 
   /* ===== Inicializações Materialize ===== */
@@ -825,26 +848,34 @@ input[type="email"]{ line-height:normal !important; }
 
     // por padrão, laudo bloqueado até pré-análise
     setLaudoEnabled(localStorage.getItem(PRE_VIAVEL_KEY) === "true");
+
+    // força máscara inicial
+    maskInputBRL({target: valorSolicitadoInput});
   });
 
-  /* ===== Botão AVANÇAR ===== */
-  document.getElementById("btnAvancar").addEventListener("click", (e)=>{
-    const viavel = localStorage.getItem(PRE_VIAVEL_KEY) === "true";
-    if (!viavel){
-      e.preventDefault();
-      mostrarMensagem("Pré-análise não está viável. Negocie o preço com o vendedor para enquadrar no valor máximo permitido e refaça a pré-análise.", "erro");
-      return;
-    }
-    const selecionado = (localStorage.getItem(TIPO_LAUDO_KEY) || "").trim();
-    if(!selecionado){
-      e.preventDefault();
-      mostrarMensagem("Selecione o Tipo de Laudo para prosseguir.", "erro");
-      return;
-    }
-    mostrarMensagem(`Tipo de Laudo selecionado: ${selecionado.toUpperCase()}.`, "sucesso");
-    // Ex.: redirecionar:
-    // window.location.href = `laudo-${selecionado}.html`;
-  });
+ /* ===== Botão AVANÇAR ===== */
+document.getElementById("btnAvancar").addEventListener("click", (e)=>{
+  const viavel = localStorage.getItem(PRE_VIAVEL_KEY) === "true";
+  if (!viavel){
+    e.preventDefault();
+    mostrarMensagem(
+      "Pré-análise não está viável. Negocie o preço com o vendedor para enquadrar no valor máximo permitido e refaça a pré-análise.",
+      "erro"
+    );
+    return;
+  }
+
+  const selecionado = (localStorage.getItem(TIPO_LAUDO_KEY) || "").trim();
+  if(!selecionado){
+    e.preventDefault();
+    mostrarMensagem("Selecione o Tipo de Laudo para prosseguir.", "erro");
+    return;
+  }
+
+  // Redireciona para a página do laudo, enviando o tipo pela query string
+  window.location.href = `laudo.html?tipo=${encodeURIComponent(selecionado)}`;
+});
+
 
   /* ===== Pré-análise ===== */
   function realizarPreAnalise(){
@@ -880,7 +911,7 @@ input[type="email"]{ line-height:normal !important; }
     tbody.appendChild(trFinal);
     document.getElementById("preAnaliseWrapper").style.display = "block";
 
-    // Parte 2: Estimativa de Valor
+    // Parte 2: Estimativa de Valor (mock)
     const min = 154252.14, total = 421723.56, max = 876509.70;
     const valorNum = parseBRL(valor);
 
@@ -910,10 +941,19 @@ input[type="email"]{ line-height:normal !important; }
     // Habilita/Desabilita Laudo de Avaliação conforme viabilidade
     localStorage.setItem(PRE_VIAVEL_KEY, viavel ? "true" : "false");
     setLaudoEnabled(viavel);
-  }
 
-  // Inicial: força máscara padrão
-  maskInputBRL({target: valorSolicitadoInput});
+    // Se viável, sugerir e selecionar automaticamente o tipo de laudo
+    if (viavel) {
+      const sugerido = sugerirTipoLaudo(valorNum);
+      setTipoLaudo(sugerido);
+      mostrarMensagem(`Tipo de Laudo sugerido automaticamente: ${sugerido.toUpperCase()}.`);
+
+      // Observação 1:1 quando Super Simples
+      if (sugerido === "supersimples" && !(listaImoveis.length === 1 && listaVendedores.length === 1)) {
+        mostrarMensagem("Para 'Super Simples' é esperado 1 imóvel e 1 vendedor (1:1). Ajuste os cadastros, se necessário.", "erro");
+      }
+    }
+  }
 </script>
 </body>
 </html>
