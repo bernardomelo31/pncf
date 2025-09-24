@@ -32,7 +32,7 @@ th{ font-weight:bold; text-align:left; }
 .action-btn .material-icons{ font-size:20px; vertical-align:middle; }
 
 .form-section{ margin-top:1.5rem; padding:1rem; background:#fff; border:1px solid #ddd; }
-.form-section h5{ margin-bottom:.8rem; color:#1976d2; }
+.form-section h5{ margin-bottom:.8rem; color:#1976d2; display:flex; align-items:center; gap:6px; }
 
 .table-wrapper{ overflow-x:auto; margin-top:1rem; }
 table.striped tbody tr:nth-child(odd){ background-color:#f9f9f9; }
@@ -93,8 +93,24 @@ input[type="email"]{ line-height:normal !important; }
 }
 #descricaoTipoLaudo{ background:#f5faff; border:1px solid #cfd8dc; border-radius:6px; }
 
-/* Aviso reavaliação */
+/* Avisos */
 #msgReavaliar{ display:none; margin-top:10px; padding:10px; border-radius:6px; background:#fff3e0; color:#8d4b00; border:1px solid #ffcc80; }
+
+/* Banner de aviso/observação (linha cheia e sem quebra) */
+.alert-inline{
+  display:none;
+  margin-top:8px;
+  padding:8px 12px;
+  border:1px solid #ffe082;
+  background:#fff8e1;
+  color:#8d6e63;
+  border-radius:6px;
+  font-weight:600;
+  white-space:nowrap;
+  width:100%;
+}
+.anexo-grid .alert-inline{ grid-column:1 / -1; }
+.alert-inline i{ font-size:18px; vertical-align:middle; margin-right:6px; }
   </style>
 </head>
 <body>
@@ -180,7 +196,7 @@ input[type="email"]{ line-height:normal !important; }
         </table>
       </div>
 
-      <!-- 1.1) Pergunta de Desmembramento -->
+      <!-- 1.1) Desmembramento -->
       <div class="form-section">
         <h5><i class="material-icons left" style="color:#1976d2; margin-right:6px;">call_split</i>Desmembramento</h5>
         <div class="row">
@@ -259,7 +275,10 @@ input[type="email"]{ line-height:normal !important; }
 
       <!-- 2) Vendedor -->
       <div class="form-section">
-        <h5><i class="material-icons left" style="color:#1976d2; margin-right:6px;">person</i>Dados do Vendedor</h5>
+        <h5>
+          <i class="material-icons left" style="color:#1976d2; margin-right:6px;">person</i>
+          Dados do Vendedor
+        </h5>
         <form id="formVendedor" onsubmit="event.preventDefault(); salvarVendedor();">
           <div class="row">
             <div class="form__input col s12 m4">
@@ -346,26 +365,17 @@ input[type="email"]{ line-height:normal !important; }
 
       <!-- 3) Anexos do Imóvel -->
       <div class="form-section">
-<h5>
-  <i class="material-icons left" style="color:#1976d2; margin-right:6px;">folder_open</i>
-  Anexos do Imóvel
-</h5>
-
+        <h5>
+          <i class="material-icons left" style="color:#1976d2; margin-right:6px;">folder_open</i>
+          Anexos do Imóvel
+        </h5>
         <form id="formAnexoImovel" onsubmit="event.preventDefault(); salvarOuAtualizarAnexo('imovel');">
           <div class="anexo-grid">
             <div class="form__input">
               <label for="tipoAnexoImovel">Tipo de Documento</label>
               <select id="tipoAnexoImovel" class="browser-default">
                 <option value="" disabled selected>Selecione o documento</option>
-                <option value="Certidão de Regularidade do FGTS">Certidão de Regularidade do FGTS</option>
-                <option value="Certidões Negativas">Certidões Negativas</option>
-                <option value="Cópia da Certidão de Registro">Cópia da Certidão de Registro</option>
-                <option value="Certidão Vintenária">Certidão Vintenária</option>
-                <option value="Certidão de Ônus">Certidão de Ônus</option>
-                <option value="CCIR">CCIR</option>
-                <option value="Regularidade Fiscal do Imóvel">Regularidade Fiscal do Imóvel</option>
-                <option value="Débitos Tributários Federais do Imóvel">Débitos Tributários Federais do Imóvel</option>
-                <option value="Declaração de não interesse do INCRA">Declaração de não interesse do INCRA</option>
+                <!-- opções são preenchidas via JS a partir do catálogo -->
               </select>
             </div>
 
@@ -387,13 +397,16 @@ input[type="email"]{ line-height:normal !important; }
               </button>
               <small id="modoEdicaoAnexoImovel" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
+
+            <!-- Banner de avisos/observações (linha inteira) -->
+            <div id="alertDocInfo" class="alert-inline"></div>
           </div>
         </form>
 
         <div class="table-wrapper">
           <table class="striped bordered">
             <thead>
-              <tr><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
+              <tr><th>#</th><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
             </thead>
             <tbody id="tabelaAnexosImovel"></tbody>
           </table>
@@ -402,22 +415,17 @@ input[type="email"]{ line-height:normal !important; }
 
       <!-- 4) Anexos do Vendedor -->
       <div class="form-section">
-<h5>
-  <i class="material-icons left" style="color:#1976d2; margin-right:6px;">folder_open</i>
-  Anexos do Vendedor
-</h5>
-
+        <h5>
+          <i class="material-icons left" style="color:#1976d2; margin-right:6px;">folder_open</i>
+          Anexos do Vendedor
+        </h5>
         <form id="formAnexoVendedor" onsubmit="event.preventDefault(); salvarOuAtualizarAnexo('vendedor');">
           <div class="anexo-grid">
             <div class="form__input">
               <label for="tipoAnexoVendedor">Tipo de Documento</label>
               <select id="tipoAnexoVendedor" class="browser-default">
                 <option value="" disabled selected>Selecione o documento</option>
-                <option value="Documento de Identificação">Documento de Identificação</option>
-                <option value="Comprovante de Endereço">Comprovante de Endereço</option>
-                <option value="Certidões Negativas">Certidões Negativas</option>
-                <option value="Procuração">Procuração</option>
-                <option value="Outros">Outros</option>
+                <!-- opções preenchidas via JS -->
               </select>
             </div>
 
@@ -439,13 +447,16 @@ input[type="email"]{ line-height:normal !important; }
               </button>
               <small id="modoEdicaoAnexoVendedor" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
+
+            <!-- Banner de recomendações (linha inteira) -->
+            <div id="alertVendedorInfo" class="alert-inline"></div>
           </div>
         </form>
 
         <div class="table-wrapper">
           <table class="striped bordered">
             <thead>
-              <tr><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
+              <tr><th>#</th><th>Tipo de Documento</th><th>Arquivo</th><th>Ações</th></tr>
             </thead>
             <tbody id="tabelaAnexosVendedor"></tbody>
           </table>
@@ -454,11 +465,7 @@ input[type="email"]{ line-height:normal !important; }
 
       <!-- 5) Pré-Análise -->
       <div class="form-section">
-<h5>
-  <i class="material-icons left" style="color:#1976d2; margin-right:6px;">content_paste</i>
-  Pré-Análise
-</h5>
-
+        <h5><i class="material-icons left" style="color:#1976d2; margin-right:6px;">fact_check</i>Pré-Análise</h5>
 
         <div class="row" style="margin-bottom:1rem;">
           <div class="form__input col s12 m4">
@@ -469,7 +476,7 @@ input[type="email"]{ line-height:normal !important; }
 
         <div style="margin-bottom:12px;">
           <button type="button" class="btn btn-add btn-square" onclick="realizarPreAnalise()">
-            <i class="material-icons left">fact_check</i>REALIZAR PRÉ-ANÁLISE
+            <i class="material-icons left">play_arrow</i>REALIZAR PRÉ-ANÁLISE
           </button>
         </div>
 
@@ -507,7 +514,8 @@ input[type="email"]{ line-height:normal !important; }
 
       <!-- 6) Laudo de Avaliação - SOMENTE LEITURA -->
       <div id="laudoSection" class="form-section">
-        <h5 style="display:flex; align-items:center; gap:8px;">
+        <h5>
+          <i class="material-icons left" style="color:#1976d2; margin-right:6px;">assignment</i>
           Laudo de Avaliação
         </h5>
 
@@ -577,10 +585,9 @@ input[type="email"]{ line-height:normal !important; }
 
   const PRE_VIAVEL_KEY = "preAnaliseViavel";
   const TIPO_LAUDO_KEY = "tipoLaudo";
-
-  /* Limite 4,5 mi (para SIM desmembramento) */
   const LIM_45MI = 4500000;
 
+  /* Banco fictício (imóvel) */
   const bancoFicticioImovel = {
     "111.111.111.111-1": {
       codigoImovel: "797733f2-8a47-4c41-9fe6-52f661a4463e", status: "CERTIFICADA",
@@ -589,15 +596,50 @@ input[type="email"]{ line-height:normal !important; }
     }
   };
 
-  /* “API” fictícia de Lotes */
-  const RESPONSAVEL_TECNICO = "RICARDO MACHADO AGUIAR";
-  const DOC_RT = "BR20241205829 - GO";
-  const DATA_ENTRADA_FIXA = "17/12/2024";
-  const bancoFicticioLotes = {
-    "Lote 1": { sigef:"7b6b25d0-aea7-41fdd-8105-6605e70b82fa", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" },
-    "Lote 2": { sigef:"0f4b90c3-1f4a-4a42-9b9c-3b47d3c8e6ad", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" }
+  /* Catálogo oficial de Anexos do Imóvel (1–17) */
+  const ANEXOS_IMOVEL_CATALOGO = [
+    {codigo:1, label:"Matrícula ou Certidão de Registro no Cartório de Registro de Imóveis."},
+    {codigo:2, label:"Certidão Vintenária ou Cadeia Dominial."},
+    {codigo:3, label:"Certidão de Ônus, Gravames e Ações Reais e Reipersecutórias."},
+    {codigo:4, label:"Certificado de Cadastro do Imóvel Rural - CCIR, atualizado."},
+    {codigo:5, label:"Certificado do Cadastro Ambiental Rural - CAR."},
+    {codigo:6, label:"Cópia da Certidão de Regularidade Fiscal do Imóvel."},
+    {codigo:7, label:"Planilha com a relação de todos os lotes/CPF/nome/área útil/reserva legal/área total."},
+    {codigo:8, label:"Memorial Descritivo da área total do IMÓVEL"},
+    {codigo:9, label:"Memorial Descritivo em área de reserva em condomínio"},
+    {codigo:10,label:"Planta Topográfica da área total do imóvel gerado no SIGEF."},
+    {codigo:11,label:"Planta Topográfica do lote em KML"},
+    {codigo:12,label:"Planta Topográfica da reserva legal em PDF"},
+    {codigo:13,label:"Planta Topográfica da reserva legal em KML"},
+    {codigo:14,label:"Planta Topográfica do parcelamento total do imóvel em KML"},
+    {codigo:15,label:"Planta Topográfica do parcelamento total do imóvel em PDF, assinada pelo técnico responsável."},
+    {codigo:16,label:"(ART) ou (TRT) das peças técnicas apresentadas (memoriais e plantas)."},
+    {codigo:17,label:"Declaração de não interesse do INCRA ou Declaração da empresa de ATER."}
+  ];
+
+  /* Catálogo oficial de Anexos do Vendedor (1–7) */
+  const ANEXOS_VENDEDOR_CATALOGO = [
+    {codigo:1, label:"Declaração de intenção de venda do vendedor."},
+    {codigo:2, label:"Documento oficial de identificação (vendedor e cônjuge)."},
+    {codigo:3, label:"Comprovante do estado civil."},
+    {codigo:4, label:"Certidão Negativa de Débitos da RFB (vendedor e cônjuge)."},
+    {codigo:5, label:"Certificado de regularidade do FGTS ou Declaração de Isento de INSS/FGTS"},
+    {codigo:6, label:"Certidão Negativa de Ações Cíveis, Pessoais e Reipersecutórias"},
+    {codigo:7, label:"Procuração Pública, quando for o caso"}
+  ];
+
+  /* Recomendações (banner) para Vendedor */
+  const RECOMENDACOES_VENDEDOR = {
+    1: "Recomendação: preferir papel timbrado, com assinatura reconhecida, descrição do imóvel, preço e condições.",
+    2: "Recomendação: anexar RG/CPF ou CNH válidos (frente e verso) do vendedor e do cônjuge, em PDF legível.",
+    3: "Recomendação: certidão atualizada (≤ 90 dias) — casamento, nascimento com averbações, divórcio etc.",
+    4: "Recomendação: emitir no site da Receita Federal; garantir validade (≤ 30 dias) para vendedor e cônjuge.",
+    5: "Recomendação: anexar CRF/FGTS vigente ou declaração de isenção assinada.",
+    6: "Recomendação: emitir certidão no Tribunal de Justiça do domicílio; validade (≤ 30 dias).",
+    7: "Recomendação: procuração pública com poderes específicos, data recente e firma reconhecida."
   };
 
+  /* Banco fictício (vendedor) */
   const bancoFicticioVendedor = {
     "111.111.111-11": {
       nome: "MARIA DE SOUZA", nascimento: "15/03/1980", cep: "50000-000",
@@ -612,6 +654,9 @@ input[type="email"]{ line-height:normal !important; }
     msgBox.style.display = "block";
     setTimeout(() => { msgBox.style.display = "none"; }, 4000);
   }
+
+  /* ===== Util ===== */
+  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
   /* ===== SNCR ===== */
   const sncrInput = document.getElementById("parcelaCodigo");
@@ -698,18 +743,20 @@ input[type="email"]{ line-height:normal !important; }
   function setLotesVisible(visible){
     document.getElementById('lotesSection').style.display = visible ? 'block' : 'none';
     localStorage.setItem(DESMEMBRADO_KEY, visible ? "true" : "false");
-
-    // se já viável, redecide o tipo automaticamente (readonly)
-    if (localStorage.getItem(PRE_VIAVEL_KEY) === "true") {
-      aplicarRegraTipoLaudo();
-    }
+    if (localStorage.getItem(PRE_VIAVEL_KEY) === "true") aplicarRegraTipoLaudo();
   }
   radiosDesmembra.forEach(r=>{
     r.addEventListener('change', (e)=> setLotesVisible(e.target.value === 'sim'));
   });
 
-  // autopreenche lote
   selDenom.addEventListener('change', ()=>{
+    const DATA_ENTRADA_FIXA = "17/12/2024";
+    const RESPONSAVEL_TECNICO = "Ricardo Aguiar de Oliveira";
+    const DOC_RT = "BR20241205829 - GO";
+    const bancoFicticioLotes = {
+      "Lote 1": { sigef:"7b6b25d0-aea7-41fdd-8105-6605e70b82fa", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" },
+      "Lote 2": { sigef:"0f4b90c3-1f4a-4a42-9b9c-3b47d3c8e6ad", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" }
+    };
     const d = bancoFicticioLotes[selDenom.value] || {};
     document.getElementById('loteSigef').value = d.sigef || "";
     document.getElementById('loteData').value = d.dataEntrada || DATA_ENTRADA_FIXA;
@@ -719,6 +766,10 @@ input[type="email"]{ line-height:normal !important; }
   });
 
   function salvarLote(){
+    const DATA_ENTRADA_FIXA = "17/12/2024";
+    const RESPONSAVEL_TECNICO = "Ricardo Aguiar de Oliveira";
+    const DOC_RT = "BR20241205829 - GO";
+
     const denom = selDenom.value;
     if(!denom){ mostrarMensagem("Selecione a denominação do lote.", "erro"); return; }
     const novo = {
@@ -875,82 +926,290 @@ input[type="email"]{ line-height:normal !important; }
     });
   }
 
-  /* ===== Anexos ===== */
+  /* ===== Anexos (arquivos) ===== */
+
+  // --- IMÓVEL ---
+  function popularCatalogoAnexosImovel(){
+    const select = document.getElementById('tipoAnexoImovel');
+    select.innerHTML = '<option value="" disabled selected>Selecione o documento</option>';
+    ANEXOS_IMOVEL_CATALOGO.forEach(item=>{
+      const opt = document.createElement('option');
+      opt.value = String(item.codigo);
+      opt.textContent = `${item.codigo}. ${item.label}`;
+      select.appendChild(opt);
+    });
+  }
+
+  const selectTipoImovel = document.getElementById('tipoAnexoImovel');
+  const alertDocInfo = document.getElementById('alertDocInfo');
+
+  /* 
+     Recomendação genérica com prefixo fixo "Recomendação:".
+     Você pode completar os textos específicos por código (1–17) aqui quando quiser.
+     Ex.: RECOMENDACOES_IMOVEL[1] = "A matrícula deve estar atualizada nos últimos 30 dias.";
+  */
+  const RECOMENDACOES_IMOVEL = {
+    1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"",
+    9:"", 10:"", 11:"", 12:"", 13:"", 14:"", 15:"", 16:"", 17:""
+  };
+
+  function showImovelRecommendation(codeStr){
+    if (!codeStr){
+      alertDocInfo.style.display = 'none';
+      alertDocInfo.innerHTML = '';
+      return;
+    }
+    const cod = parseInt(codeStr, 10);
+    const extra = RECOMENDACOES_IMOVEL[cod] || "";
+    alertDocInfo.innerHTML = `<i class="material-icons">info</i>Recomendação: ${extra}`;
+    alertDocInfo.style.display = 'block';
+  }
+
+  selectTipoImovel.addEventListener('change', (e)=>{
+    showImovelRecommendation(e.target.value);
+  });
+
   document.getElementById('arquivoImovel').addEventListener('change', (e)=>{
     document.getElementById('nomeArquivoImovel').value = e.target.files?.[0]?.name || '';
   });
+
+  function ordenarAnexosImovel(){
+    anexosImovel.sort((a,b)=>{
+      const ca = (typeof a.codigo === 'number') ? a.codigo : 999;
+      const cb = (typeof b.codigo === 'number') ? b.codigo : 999;
+      return ca - cb;
+    });
+  }
+
+  function migrarAnexosImovelSeNecessario(){
+    let mudou = false;
+    anexosImovel = anexosImovel.map(item=>{
+      if (item && typeof item.codigo === 'number') return item;
+      const label = item?.documento || item?.label || '';
+      const found = ANEXOS_IMOVEL_CATALOGO.find(c => label && label.toLowerCase().includes(c.label.split(' - ')[0].toLowerCase().slice(0,20)));
+      mudou = true;
+      return {
+        codigo: found ? found.codigo : 999,
+        label: found ? found.label : (label || 'Documento'),
+        arquivo: item?.arquivo || ''
+      };
+    });
+    if (mudou){
+      ordenarAnexosImovel();
+      localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
+    }
+  }
+
+  // --- VENDEDOR ---
+  function popularCatalogoAnexosVendedor(){
+    const select = document.getElementById('tipoAnexoVendedor');
+    select.innerHTML = '<option value="" disabled selected>Selecione o documento</option>';
+    ANEXOS_VENDEDOR_CATALOGO.forEach(item=>{
+      const opt = document.createElement('option');
+      opt.value = String(item.codigo);
+      opt.textContent = `${item.codigo}. ${item.label}`;
+      select.appendChild(opt);
+    });
+  }
+
+  const selectTipoVendedor = document.getElementById('tipoAnexoVendedor');
+  const alertVendedorInfo = document.getElementById('alertVendedorInfo');
+  selectTipoVendedor.addEventListener('change', (e)=>{
+    const cod = parseInt(e.target.value || '0', 10);
+    const rec = RECOMENDACOES_VENDEDOR[cod];
+    if (rec){
+      alertVendedorInfo.innerHTML = `<i class="material-icons">info</i>${rec}`;
+      alertVendedorInfo.style.display = 'block';
+    } else {
+      alertVendedorInfo.style.display = 'none';
+      alertVendedorInfo.innerHTML = '';
+    }
+  });
+
   document.getElementById('arquivoVendedor').addEventListener('change', (e)=>{
     document.getElementById('nomeArquivoVendedor').value = e.target.files?.[0]?.name || '';
   });
 
+  function ordenarAnexosVendedor(){
+    anexosVendedor.sort((a,b)=>{
+      const ca = (typeof a.codigo === 'number') ? a.codigo : 999;
+      const cb = (typeof b.codigo === 'number') ? b.codigo : 999;
+      return ca - cb;
+    });
+  }
+
+  function migrarAnexosVendedorSeNecessario(){
+    let mudou = false;
+    anexosVendedor = anexosVendedor.map(item=>{
+      if (item && typeof item.codigo === 'number') return item;
+      const label = item?.documento || item?.label || '';
+      const found = ANEXOS_VENDEDOR_CATALOGO.find(c => label && label.toLowerCase().includes(c.label.toLowerCase().slice(0,20)));
+      mudou = true;
+      return {
+        codigo: found ? found.codigo : 999,
+        label: found ? found.label : (label || 'Documento'),
+        arquivo: item?.arquivo || ''
+      };
+    });
+    if (mudou){
+      ordenarAnexosVendedor();
+      localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
+    }
+  }
+
+  /* Salvar/atualizar anexos (genérico) */
   function salvarOuAtualizarAnexo(tipo) {
     const select = document.getElementById('tipoAnexo' + capitalize(tipo));
     const inputFile = document.getElementById('arquivo' + capitalize(tipo));
     const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
 
-    if (!select.value || !inputFile.files.length) { mostrarMensagem("Selecione o tipo de documento e um arquivo PDF.", "erro"); return; }
-    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
-    const idxEdit = editandoAnexo[tipo];
+    // --- IMÓVEL (com catálogo numérico) ---
+    if (tipo === 'imovel'){
+      const codigo = parseInt(select.value || '0', 10);
+      if (!codigo || !inputFile.files.length) { mostrarMensagem("Selecione o tipo (1–17) e um PDF.", "erro"); return; }
+      const info = ANEXOS_IMOVEL_CATALOGO.find(x=>x.codigo===codigo);
+      const novo = { codigo, label: info?.label || select.options[select.selectedIndex].text, arquivo: inputFile.files[0].name };
 
-    if (idxEdit === null) { lista.push({ documento: select.value, arquivo: inputFile.files[0].name }); mostrarMensagem("Anexo adicionado com sucesso!"); }
-    else {
-      lista[idxEdit].documento = select.value;
-      if (inputFile.files[0]) lista[idxEdit].arquivo = inputFile.files[0].name;
-      editandoAnexo[tipo] = null;
-      document.getElementById('btnAddUpd' + capitalize(tipo)).innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
-      document.getElementById('modoEdicaoAnexo' + capitalize(tipo)).style.display = 'none';
-      mostrarMensagem("Anexo atualizado com sucesso!");
+      const idxEdit = editandoAnexo.imovel;
+      if (idxEdit === null) {
+        anexosImovel.push(novo);
+        ordenarAnexosImovel();
+        mostrarMensagem("Anexo do imóvel adicionado e listado em ordem!");
+      } else {
+        anexosImovel[idxEdit] = novo;
+        editandoAnexo.imovel = null;
+        document.getElementById('btnAddUpdImovel').innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
+        document.getElementById('modoEdicaoAnexoImovel').style.display = 'none';
+        ordenarAnexosImovel();
+        mostrarMensagem("Anexo do imóvel atualizado e reposicionado!");
+      }
+      localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
+      renderTabelaAnexos('imovel');
+
+      select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
+      alertDocInfo.style.display = "none"; alertDocInfo.innerHTML = "";
+      return;
     }
 
-    if (tipo === 'imovel') { anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel)); renderTabelaAnexos('imovel'); }
-    else { anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor)); renderTabelaAnexos('vendedor'); }
+    // --- VENDEDOR (com catálogo numérico) ---
+    if (tipo === 'vendedor'){
+      const codigo = parseInt(select.value || '0', 10);
+      if (!codigo || !inputFile.files.length) { mostrarMensagem("Selecione o tipo (1–7) e um PDF.", "erro"); return; }
+      const info = ANEXOS_VENDEDOR_CATALOGO.find(x=>x.codigo===codigo);
+      const novo = { codigo, label: info?.label || select.options[select.selectedIndex].text, arquivo: inputFile.files[0].name };
 
-    select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
+      const idxEdit = editandoAnexo.vendedor;
+      if (idxEdit === null) {
+        anexosVendedor.push(novo);
+        ordenarAnexosVendedor();
+        mostrarMensagem("Anexo do vendedor adicionado e listado em ordem!");
+      } else {
+        anexosVendedor[idxEdit] = novo;
+        editandoAnexo.vendedor = null;
+        document.getElementById('btnAddUpdVendedor').innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
+        document.getElementById('modoEdicaoAnexoVendedor').style.display = 'none';
+        ordenarAnexosVendedor();
+        mostrarMensagem("Anexo do vendedor atualizado e reposicionado!");
+      }
+
+      localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
+      renderTabelaAnexos('vendedor');
+
+      select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
+      alertVendedorInfo.style.display = "none"; alertVendedorInfo.innerHTML = "";
+      return;
+    }
   }
 
   function renderTabelaAnexos(tipo) {
     const tbody = document.getElementById('tabelaAnexos' + capitalize(tipo));
     tbody.innerHTML = "";
-    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
 
-    lista.forEach((item, idx) => {
+    if (tipo === 'imovel') {
+      ordenarAnexosImovel();
+      anexosImovel.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${(typeof item.codigo === 'number') ? item.codigo : '-'}</td>
+          <td>${item.label || ''}</td>
+          <td>${item.arquivo || ''}</td>
+          <td>
+            <button class="action-btn" onclick="editarAnexo('imovel', ${idx})" title="Editar"><i class="material-icons">edit</i></button>
+            <button class="action-btn" onclick="excluirAnexo('imovel', ${idx})" title="Excluir"><i class="material-icons">delete</i></button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      return;
+    }
+
+    // vendedor (ordenado por código)
+    ordenarAnexosVendedor();
+    anexosVendedor.forEach((item, idx) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${item.documento}</td>
-        <td>${item.arquivo}</td>
+        <td>${(typeof item.codigo === 'number') ? item.codigo : '-'}</td>
+        <td>${item.label || ''}</td>
+        <td>${item.arquivo || ''}</td>
         <td>
-          <button class="action-btn" onclick="editarAnexo('${tipo}', ${idx})" title="Editar"><i class="material-icons">edit</i></button>
-          <button class="action-btn" onclick="excluirAnexo('${tipo}', ${idx})" title="Excluir"><i class="material-icons">delete</i></button>
+          <button class="action-btn" onclick="editarAnexo('vendedor', ${idx})" title="Editar"><i class="material-icons">edit</i></button>
+          <button class="action-btn" onclick="excluirAnexo('vendedor', ${idx})" title="Excluir"><i class="material-icons">delete</i></button>
         </td>`;
       tbody.appendChild(tr);
     });
   }
 
   function editarAnexo(tipo, idx) {
-    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
-    const item = lista[idx];
-    const select = document.getElementById('tipoAnexo' + capitalize(tipo));
-    const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
+    if (tipo === 'imovel'){
+      const item = anexosImovel[idx];
+      const select = document.getElementById('tipoAnexoImovel');
+      const nomeEspelho = document.getElementById('nomeArquivoImovel');
+      select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
+      nomeEspelho.value = item.arquivo || "";
 
-    select.value = item.documento;
-    nomeEspelho.value = item.arquivo;
+      // reexibir banner "Recomendação:"
+      const evt = new Event('change');
+      select.dispatchEvent(evt);
 
-    editandoAnexo[tipo] = idx;
-    document.getElementById('btnAddUpd' + capitalize(tipo)).innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
-    document.getElementById('modoEdicaoAnexo' + capitalize(tipo)).style.display = 'inline';
-    mostrarMensagem(`Editando anexo de ${tipo}...`);
+      editandoAnexo.imovel = idx;
+      document.getElementById('btnAddUpdImovel').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
+      document.getElementById('modoEdicaoAnexoImovel').style.display = 'inline';
+      mostrarMensagem("Editando anexo do imóvel...");
+      return;
+    }
+
+    // vendedor
+    const item = anexosVendedor[idx];
+    const select = document.getElementById('tipoAnexoVendedor');
+    const nomeEspelho = document.getElementById('nomeArquivoVendedor');
+
+    select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
+    nomeEspelho.value = item.arquivo || "";
+
+    // reexibir recomendação
+    const evt = new Event('change');
+    select.dispatchEvent(evt);
+
+    editandoAnexo.vendedor = idx;
+    document.getElementById('btnAddUpdVendedor').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
+    document.getElementById('modoEdicaoAnexoVendedor').style.display = 'inline';
+    mostrarMensagem("Editando anexo do vendedor...");
   }
 
   function excluirAnexo(tipo, idx) {
-    const lista = (tipo === 'imovel') ? anexosImovel : anexosVendedor;
-    lista.splice(idx, 1);
-    if (tipo === 'imovel') { anexosImovel = lista; localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel)); }
-    else { anexosVendedor = lista; localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor)); }
-    renderTabelaAnexos(tipo);
-    mostrarMensagem("Anexo excluído com sucesso!");
+    if (tipo === 'imovel'){
+      anexosImovel.splice(idx, 1);
+      ordenarAnexosImovel();
+      localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
+      renderTabelaAnexos('imovel');
+      mostrarMensagem("Anexo do imóvel excluído.");
+      return;
+    }
+    anexosVendedor.splice(idx, 1);
+    ordenarAnexosVendedor();
+    localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
+    renderTabelaAnexos('vendedor');
+    mostrarMensagem("Anexo do vendedor excluído.");
   }
-
-  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
   /* ===== Máscara BRL ===== */
   const valorSolicitadoInput = document.getElementById("valorSolicitado");
@@ -991,7 +1250,7 @@ input[type="email"]{ line-height:normal !important; }
   function setTipoLaudo(tipo){
     const radio = document.querySelector(`input[name="tipoLaudo"][value="${tipo}"]`);
     Array.from(document.querySelectorAll('input[name="tipoLaudo"]')).forEach(r => r.checked = false);
-    if (radio) radio.checked = true;            // permanece disabled (somente leitura)
+    if (radio) radio.checked = true;
     localStorage.setItem(TIPO_LAUDO_KEY, tipo);
     setDescricao(tipo);
   }
@@ -1001,11 +1260,10 @@ input[type="email"]{ line-height:normal !important; }
     setDescricao(null);
   }
 
-  /* >>> Regra fixa para decidir o tipo de laudo (readonly) <<< */
   function decidirTipoLaudo(valorNum){
     const desmembrado = localStorage.getItem(DESMEMBRADO_KEY) === "true";
-    if (!desmembrado) return "supersimples";                 // NÃO → sempre Super Simples
-    return (valorNum <= LIM_45MI) ? "simplificado" : "completo"; // SIM → <=4,5mi Simplificado; >4,5mi Completo
+    if (!desmembrado) return "supersimples";
+    return (valorNum <= LIM_45MI) ? "simplificado" : "completo";
   }
   function aplicarRegraTipoLaudo(){
     const valorNum = parseBRL(document.getElementById("valorSolicitado").value || "0");
@@ -1025,26 +1283,31 @@ input[type="email"]{ line-height:normal !important; }
       if (tips.length) M.Tooltip.init(tips);
     }
 
+    // Catálogos + migrações
+    popularCatalogoAnexosImovel();
+    popularCatalogoAnexosVendedor();
+    migrarAnexosImovelSeNecessario();
+    migrarAnexosVendedorSeNecessario();
+
+    // Renderizações
     renderTabelaImoveis();
     renderTabelaVendedores();
     renderTabelaAnexos('imovel');
     renderTabelaAnexos('vendedor');
     renderTabelaLotes();
 
-    // restaura visibilidade do bloco de lotes pelo estado salvo
+    // restaura visibilidade do bloco de lotes
     const desm = localStorage.getItem(DESMEMBRADO_KEY) === "true";
     const r = document.querySelector(`input[name="desmembra"][value="${desm?'sim':'nao'}"]`);
     if(r){ r.checked = true; setLotesVisible(desm); }
 
-    // força máscara inicial
     maskInputBRL({target: document.getElementById("valorSolicitado")});
 
-    // se pré-análise já era viável, aplica regra e mostra seleção; senão limpa
     const isViavel = localStorage.getItem(PRE_VIAVEL_KEY) === "true";
     if (isViavel) aplicarRegraTipoLaudo(); else clearTipoLaudo();
   });
 
-  /* ===== Botão AVANÇAR ===== */
+  /* AVANÇAR */
   document.getElementById("btnAvancar").addEventListener("click", (e)=>{
     e.preventDefault();
 
@@ -1067,7 +1330,7 @@ input[type="email"]{ line-height:normal !important; }
     window.location.href = "laudop1.html";
   });
 
-  /* Monta payload para o laudo P1 (+ lotes se houver) */
+  /* Payload p/ laudo */
   function prepararPayloadLaudoAPartirDaElegibilidade() {
     const imv = listaImoveis[0];
     if (!imv) return false;
@@ -1096,7 +1359,7 @@ input[type="email"]{ line-height:normal !important; }
     return true;
   }
 
-  /* ===== Pré-análise ===== */
+  /* ===== Pré-análise (mock) ===== */
   function realizarPreAnalise(){
     const valor = document.getElementById("valorSolicitado").value.trim();
     if(!valor){
@@ -1104,7 +1367,6 @@ input[type="email"]{ line-height:normal !important; }
       return;
     }
 
-    // (mock) Critérios CMN
     const criterios = [
       "Quanto à situação do CAR",
       "Quanto à sobreposição com Unidades de Conservação",
@@ -1130,7 +1392,6 @@ input[type="email"]{ line-height:normal !important; }
     tbody.appendChild(trFinal);
     document.getElementById("preAnaliseWrapper").style.display = "block";
 
-    // Estimativa (mock) + viabilidade
     const min = 154252.14, total = 421723.56, max = 876509.70;
     const valorNum = parseBRL(valor);
     let avaliacao, viavel;
@@ -1154,7 +1415,6 @@ input[type="email"]{ line-height:normal !important; }
     document.getElementById("resultadoViabilidade").innerText = avaliacao;
     document.getElementById("estimativaValorWrapper").style.display = "block";
 
-    // salva viabilidade e, se viável, define (readonly) o tipo de laudo; senão limpa
     localStorage.setItem(PRE_VIAVEL_KEY, viavel ? "true" : "false");
     if (viavel) aplicarRegraTipoLaudo(); else clearTipoLaudo();
   }
