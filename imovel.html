@@ -225,11 +225,15 @@ input[type="email"]{ line-height:normal !important; }
                 <option value="Lote 2">Lote 2</option>
               </select>
             </div>
-            <div class="form__input col s12 m5">
+            <div class="form__input col s12 m3">
               <label for="loteSigef">Código SIGEF</label>
               <input type="text" id="loteSigef" readonly />
             </div>
-            <div class="form__input col s12 m4">
+            <div class="form__input col s12 m3">
+              <label for="loteArea">Área a adquirir (ha)</label>
+              <input type="text" id="loteArea" placeholder="0,0000" />
+            </div>
+            <div class="form__input col s12 m3">
               <label for="loteData">Data da entrada</label>
               <input type="text" id="loteData" readonly />
             </div>
@@ -264,7 +268,7 @@ input[type="email"]{ line-height:normal !important; }
           <table class="striped bordered">
             <thead>
               <tr>
-                <th>Denominação</th><th>SIGEF</th><th>Data de Entrada</th>
+                <th>Denominação</th><th>SIGEF</th><th>Área (ha)</th><th>Data de Entrada</th>
                 <th>Responsável Técnico(a)</th><th>Documento RT</th><th>Status</th><th>Ações</th>
               </tr>
             </thead>
@@ -375,7 +379,7 @@ input[type="email"]{ line-height:normal !important; }
               <label for="tipoAnexoImovel">Tipo de Documento</label>
               <select id="tipoAnexoImovel" class="browser-default">
                 <option value="" disabled selected>Selecione o documento</option>
-                <!-- opções são preenchidas via JS a partir do catálogo -->
+                <!-- opções são preenchidas via JS -->
               </select>
             </div>
 
@@ -398,7 +402,7 @@ input[type="email"]{ line-height:normal !important; }
               <small id="modoEdicaoAnexoImovel" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
 
-            <!-- Banner de avisos/observações (linha inteira) -->
+            <!-- Banner de avisos/observações -->
             <div id="alertDocInfo" class="alert-inline"></div>
           </div>
         </form>
@@ -448,7 +452,7 @@ input[type="email"]{ line-height:normal !important; }
               <small id="modoEdicaoAnexoVendedor" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
 
-            <!-- Banner de recomendações (linha inteira) -->
+            <!-- Banner de recomendações -->
             <div id="alertVendedorInfo" class="alert-inline"></div>
           </div>
         </form>
@@ -517,7 +521,6 @@ input[type="email"]{ line-height:normal !important; }
         <h5>
           <i class="material-icons left" style="color:#1976d2; margin-right:6px;">assignment</i>
           Laudo de Avaliação
-          <span class="badge-readonly"><i class="material-icons">lock</i> Somente leitura</span>
         </h5>
 
         <div class="row" style="margin-bottom:0;">
@@ -766,6 +769,15 @@ input[type="email"]{ line-height:normal !important; }
     document.getElementById('loteStatus').value = d.status || "CERTIFICADA";
   });
 
+  /* Máscara para hectares (até 4 casas decimais) */
+  function maskHa(e){
+    let v = e.target.value.replace(/[^\d,]/g,'');
+    const parts = v.split(',');
+    if (parts.length > 1) v = parts[0] + ',' + parts.slice(1).join('').slice(0,4);
+    e.target.value = v;
+  }
+  document.getElementById('loteArea').addEventListener('input', maskHa);
+
   function salvarLote(){
     const DATA_ENTRADA_FIXA = "17/12/2024";
     const RESPONSAVEL_TECNICO = "Ricardo Aguiar de Oliveira";
@@ -773,9 +785,14 @@ input[type="email"]{ line-height:normal !important; }
 
     const denom = selDenom.value;
     if(!denom){ mostrarMensagem("Selecione a denominação do lote.", "erro"); return; }
+
+    const areaHa = (document.getElementById('loteArea').value || '').trim();
+    if(!areaHa){ mostrarMensagem("Informe a área a adquirir (ha).", "erro"); return; }
+
     const novo = {
       denom,
       sigef: document.getElementById('loteSigef').value,
+      areaHa, // <<<<<<<< salva a área
       dataEntrada: document.getElementById('loteData').value || DATA_ENTRADA_FIXA,
       responsavel: document.getElementById('loteResp').value || RESPONSAVEL_TECNICO,
       docRT: document.getElementById('loteDocRT').value || DOC_RT,
@@ -804,6 +821,7 @@ input[type="email"]{ line-height:normal !important; }
       tr.innerHTML = `
         <td>${l.denom}</td>
         <td>${l.sigef}</td>
+        <td>${l.areaHa || ''}</td>
         <td>${l.dataEntrada}</td>
         <td>${l.responsavel}</td>
         <td>${l.docRT}</td>
@@ -819,6 +837,7 @@ input[type="email"]{ line-height:normal !important; }
     const l = listaLotes[i];
     selDenom.value = l.denom;
     document.getElementById('loteSigef').value = l.sigef;
+    document.getElementById('loteArea').value = l.areaHa || '';
     document.getElementById('loteData').value = l.dataEntrada;
     document.getElementById('loteResp').value = l.responsavel;
     document.getElementById('loteDocRT').value = l.docRT;
@@ -944,11 +963,7 @@ input[type="email"]{ line-height:normal !important; }
   const selectTipoImovel = document.getElementById('tipoAnexoImovel');
   const alertDocInfo = document.getElementById('alertDocInfo');
 
-  /* 
-     Recomendação genérica com prefixo fixo "Recomendação:".
-     Você pode completar os textos específicos por código (1–17) aqui quando quiser.
-     Ex.: RECOMENDACOES_IMOVEL[1] = "A matrícula deve estar atualizada nos últimos 30 dias.";
-  */
+  // Placeholder “Recomendação:” — textos específicos podem ser adicionados depois
   const RECOMENDACOES_IMOVEL = {
     1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"",
     9:"", 10:"", 11:"", 12:"", 13:"", 14:"", 15:"", 16:"", 17:""
@@ -1058,13 +1073,12 @@ input[type="email"]{ line-height:normal !important; }
     }
   }
 
-  /* Salvar/atualizar anexos (genérico) */
+  /* Salvar/atualizar anexos */
   function salvarOuAtualizarAnexo(tipo) {
     const select = document.getElementById('tipoAnexo' + capitalize(tipo));
     const inputFile = document.getElementById('arquivo' + capitalize(tipo));
     const nomeEspelho = document.getElementById('nomeArquivo' + capitalize(tipo));
 
-    // --- IMÓVEL (com catálogo numérico) ---
     if (tipo === 'imovel'){
       const codigo = parseInt(select.value || '0', 10);
       if (!codigo || !inputFile.files.length) { mostrarMensagem("Selecione o tipo (1–17) e um PDF.", "erro"); return; }
@@ -1092,7 +1106,6 @@ input[type="email"]{ line-height:normal !important; }
       return;
     }
 
-    // --- VENDEDOR (com catálogo numérico) ---
     if (tipo === 'vendedor'){
       const codigo = parseInt(select.value || '0', 10);
       if (!codigo || !inputFile.files.length) { mostrarMensagem("Selecione o tipo (1–7) e um PDF.", "erro"); return; }
@@ -1143,7 +1156,6 @@ input[type="email"]{ line-height:normal !important; }
       return;
     }
 
-    // vendedor (ordenado por código)
     ordenarAnexosVendedor();
     anexosVendedor.forEach((item, idx) => {
       const tr = document.createElement("tr");
@@ -1167,9 +1179,7 @@ input[type="email"]{ line-height:normal !important; }
       select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
       nomeEspelho.value = item.arquivo || "";
 
-      // reexibir banner "Recomendação:"
-      const evt = new Event('change');
-      select.dispatchEvent(evt);
+      const evt = new Event('change'); select.dispatchEvent(evt);
 
       editandoAnexo.imovel = idx;
       document.getElementById('btnAddUpdImovel').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
@@ -1178,7 +1188,6 @@ input[type="email"]{ line-height:normal !important; }
       return;
     }
 
-    // vendedor
     const item = anexosVendedor[idx];
     const select = document.getElementById('tipoAnexoVendedor');
     const nomeEspelho = document.getElementById('nomeArquivoVendedor');
@@ -1186,9 +1195,7 @@ input[type="email"]{ line-height:normal !important; }
     select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
     nomeEspelho.value = item.arquivo || "";
 
-    // reexibir recomendação
-    const evt = new Event('change');
-    select.dispatchEvent(evt);
+    const evt = new Event('change'); select.dispatchEvent(evt);
 
     editandoAnexo.vendedor = idx;
     document.getElementById('btnAddUpdVendedor').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
@@ -1354,7 +1361,7 @@ input[type="email"]{ line-height:normal !important; }
       }
     };
     if(localStorage.getItem(DESMEMBRADO_KEY) === "true"){
-      payload.lotes = JSON.parse(localStorage.getItem("lotes") || "[]");
+      payload.lotes = JSON.parse(localStorage.getItem("lotes") || "[]"); // inclui areaHa
     }
     localStorage.setItem("laudo_avaliacao_completo_v1", JSON.stringify(payload));
     return true;
