@@ -12,10 +12,7 @@
     .btn-square{ border-radius:0 !important; }
     .btn-add{ background:#1976d2 !important; color:#fff !important; }
     .btn-danger{ background:#b71c1c !important; color:#fff !important; }
-
-    .card-titlebar{
-      margin:0; line-height:1.5; font-weight:normal; background:#1976d2; color:#fff; padding:10px;
-    }
+    .card-titlebar{ margin:0; line-height:1.5; background:#1976d2; color:#fff; padding:10px; text-align:center; }
 
     .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
     .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
@@ -24,13 +21,10 @@
     .form__input{ flex:1; min-width:240px; }
     .form__input label{ display:block; margin-bottom:4px; font-weight:600; color:#444; }
 
-    /* aparência unificada dos campos de “visualização” (não editáveis) */
     .static-field{
       height:44px; display:flex; align-items:center; padding:0 12px;
       border:1px solid #cfd8dc; border-radius:4px; background:#f7f9fc; color:#37474f; font-weight:600;
     }
-
-    /* selects e inputs (quando existirem) */
     .form__input select.browser-default{
       height:44px !important; line-height:44px !important; border:1px solid #cfd8dc !important;
       border-radius:4px !important; background:#fff !important; padding:0 10px !important;
@@ -39,6 +33,11 @@
     #mensagem{ display:none; padding:10px; border-radius:6px; font-weight:600; margin:12px 0; }
     .msg-sucesso{ background:#c8e6c9; color:#256029; }
     .msg-erro{ background:#ffcdd2; color:#b71c1c; }
+
+    /* tabela-resumo leve */
+    .kv{ display:grid; grid-template-columns: 200px 1fr; gap:6px 12px; }
+    .kv div{ padding:6px 10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
+    .kv .k{ font-weight:700; color:#455a64; background:#f3f7fb; }
   </style>
 </head>
 <body>
@@ -46,63 +45,99 @@
 <div class="container content">
   <div class="card">
     <div class="card-content" style="padding:0;">
-      <h2 class="card-titlebar center-align">Obter Crédito Fundiário — Beneficiário</h2>
+      <h2 class="card-titlebar">Obter Crédito Fundiário — Beneficiário</h2>
 
       <div style="text-align:center; color:#145aa3; padding:.6rem;">
         <i class="material-icons" style="font-size:24px; vertical-align:middle;">label_important</i>
-        <b>ETAPA 1: Resumo</b>
+        <b>ETAPA 1</b>
       </div>
 
       <div class="section" style="padding:0 16px 16px 16px;">
-        <p style="margin:.4rem 0 1rem 0;">
-          Para obter o crédito do Programa de Financiamento, indique o Município de referência do imóvel rural a ser adquirido,
-          a linha de financiamento e o agente financeiro de interesse. Município de referência é aquele onde a maior parte da
-          propriedade rural está localizada.
-        </p>
 
         <div id="mensagem"></div>
 
+        <!-- Seleção inicial -->
         <div class="form-section">
-          <h5><i class="material-icons">summarize</i>Resumo do Imóvel</h5>
+          <h5><i class="material-icons">home</i>Seleção do Imóvel e Lote</h5>
 
           <div class="row">
             <div class="form__input">
-              <label>UF de referência *</label>
-              <div id="ufRef" class="static-field">—</div>
+              <label for="selectImovel">Imóvel (SNCR) *</label>
+              <select id="selectImovel" class="browser-default" required>
+                <option value="" disabled selected>Selecione o imóvel (SNCR)</option>
+              </select>
             </div>
-            <div class="form__input">
-              <label>Município de referência *</label>
-              <div id="munRef" class="static-field">—</div>
+            <div class="form__input" id="wrapLote" style="display:none;">
+              <label for="selectLote">Lote *</label>
+              <select id="selectLote" class="browser-default">
+                <option value="" disabled selected>Selecione o lote</option>
+              </select>
             </div>
           </div>
 
+          <div id="notaLoteUnico" class="static-field" style="display:none; margin-top:6px;">
+            Imóvel não desmembrado: lote único (Total).
+          </div>
+        </div>
+
+        <!-- Resumo do imóvel -->
+        <div class="form-section">
+          <h5><i class="material-icons">summarize</i>Resumo do Imóvel Selecionado</h5>
+
+          <div class="row">
+            <div class="form__input"><label>UF de referência</label><div id="ufRef"  class="static-field">—</div></div>
+            <div class="form__input"><label>Município de referência</label><div id="munRef" class="static-field">—</div></div>
+          </div>
+
+          <div class="kv" id="kvImovel" style="margin-top:8px;">
+            <div class="k">Certificação SIGEF</div><div id="kv_sigef">—</div>
+            <div class="k">Status</div><div id="kv_status">—</div>
+            <div class="k">Área (ha)</div><div id="kv_area">—</div>
+            <div class="k">Denominação</div><div id="kv_denom">—</div>
+            <div class="k">CNS</div><div id="kv_cns">—</div>
+            <div class="k">Matrícula</div><div id="kv_matricula">—</div>
+          </div>
+
+          <div id="boxResumoLote" style="display:none; margin-top:12px;">
+            <h6 style="color:#1976d2; margin:0 0 6px 0;">Resumo do Lote</h6>
+            <div class="kv">
+              <div class="k">Denominação</div><div id="lot_denom">—</div>
+              <div class="k">SIGEF</div><div id="lot_sigef">—</div>
+              <div class="k">Data de entrada</div><div id="lot_data">—</div>
+              <div class="k">Responsável Técnico(a)</div><div id="lot_resp">—</div>
+              <div class="k">Documento de RT</div><div id="lot_rt">—</div>
+              <div class="k">Status</div><div id="lot_status">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Agente financeiro -->
+        <div class="form-section">
+          <h5><i class="material-icons">account_balance</i>Agente Financeiro de Interesse</h5>
           <div class="row">
             <div class="form__input">
-              <label>Linha de financiamento</label>
-              <div id="linhaFin" class="static-field">A definir nesta análise</div>
-            </div>
-            <div class="form__input">
-              <label for="agenteFinanceiro">Agente financeiro de interesse *</label>
+              <label for="agenteFinanceiro">Selecione *</label>
               <select id="agenteFinanceiro" class="browser-default" required>
                 <option value="" disabled selected>Selecione</option>
-                <option>Caixa Econômica Federal</option>
-                <option>Banco do Brasil</option>
-                <option>Banco da Amazônia (BASA)</option>
-                <option>Banco do Nordeste (BNB)</option>
-                <option>Sicoob</option>
-                <option>Sicredi</option>
+                <option value="Banco do Brasil">Banco do Brasil</option>
+                <option value="Banco do Nordeste">Banco do Nordeste</option>
               </select>
             </div>
           </div>
         </div>
 
         <div class="right-align" style="margin:12px 0;">
-          <a href="index.html" class="btn btn-danger btn-square waves-effect"><i class="material-icons left">arrow_back</i>VOLTAR</a>
-          <button id="btnSalvar" class="btn btn-add btn-square waves-effect"><i class="material-icons left">save</i>SALVAR</button>
+          <a href="index.html" class="btn btn-danger btn-square waves-effect">
+            <i class="material-icons left">arrow_back</i>VOLTAR
+          </a>
+          <button id="btnSalvar" class="btn btn-add btn-square waves-effect">
+            <i class="material-icons left">save</i>SALVAR
+          </button>
           <a id="btnProximo" href="beneficiario-etapa2.html" class="btn btn-add btn-square waves-effect">
             <i class="material-icons left">arrow_forward</i>PRÓXIMO
           </a>
         </div>
+
       </div>
     </div>
   </div>
@@ -110,7 +145,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-  // util: mensagem
+  // --- helpers localStorage JSON ---
+  function getJSON(key, fallback){
+    try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch(e){ console.warn("Falha lendo", key, e); return fallback; }
+  }
+  function setJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
   function toast(texto, tipo="sucesso"){
     const box = document.getElementById("mensagem");
     box.textContent = texto;
@@ -119,58 +160,180 @@
     setTimeout(()=> box.style.display="none", 3500);
   }
 
-  // carrega UF/Município do primeiro imóvel salvo no fluxo anterior
-  function preencherResumoDoImovel(){
-    try{
-      const imoveis = JSON.parse(localStorage.getItem("imoveis") || "[]");
-      const imv = imoveis[0];
-      if(!imv){
-        toast("Nenhum imóvel encontrado. Volte e cadastre os dados do imóvel.", "erro");
-        return;
-      }
-      document.getElementById("ufRef").textContent = imv.uf || "—";
-      document.getElementById("munRef").textContent = imv.municipio || "—";
+  // --- estado vindo do imovel.html ---
+  const ctx = {
+    imoveis:        getJSON("imoveis", []),
+    lotes:          getJSON("lotes", []), // se existir; idealmente cada lote tem {sncrRef, denom, sigef, ...}
+    desmembrado:    localStorage.getItem("imovelDesmembrado") === "true"
+  };
 
-      // se já houver uma sugestão/definição de linha de financiamento salva em outro ponto, usa
-      const resumoSalvo = JSON.parse(localStorage.getItem("beneficiario_resumo") || "{}");
-      if (resumoSalvo.linhaFin) document.getElementById("linhaFin").textContent = resumoSalvo.linhaFin;
-    }catch(e){
-      console.error(e);
-      toast("Falha ao ler os dados do imóvel.", "erro");
+  // popula select de imóveis
+  function preencherSelectImovel(){
+    const sel = document.getElementById("selectImovel");
+    sel.innerHTML = '<option value="" disabled selected>Selecione o imóvel (SNCR)</option>';
+    ctx.imoveis.forEach((imv, idx)=>{
+      const o = document.createElement("option");
+      o.value = String(idx);
+      o.textContent = `${imv.parcelaCodigo} — ${imv.nomeArea}`;
+      sel.appendChild(o);
+    });
+
+    // restaura escolha anterior
+    const salvo = getJSON("beneficiario_etapa1", null);
+    if (salvo && salvo.imovelIndex != null && ctx.imoveis[salvo.imovelIndex]){
+      sel.value = String(salvo.imovelIndex);
+      atualizarResumoDoImovel(salvo.imovelIndex);
+      // restautar lote
+      if (document.getElementById("wrapLote").style.display !== "none"){
+        const selLote = document.getElementById("selectLote");
+        selLote.value = salvo.loteSelecionado?.id ?? "";
+        if (selLote.value) onChangeLote();
+      }
+      // restaura agente
+      const ag = document.getElementById("agenteFinanceiro");
+      if (salvo.agente) ag.value = salvo.agente;
     }
   }
 
-  // restaura seleção do agente
-  function restaurarAgente(){
-    const dados = JSON.parse(localStorage.getItem("beneficiario_resumo") || "{}");
-    if(dados.agente) document.getElementById("agenteFinanceiro").value = dados.agente;
+  // ao escolher imóvel, mostra resumo e configura lote
+  function atualizarResumoDoImovel(index){
+    const imv = ctx.imoveis[index];
+    if (!imv){ return; }
+
+    // topo UF/Mun
+    document.getElementById("ufRef").textContent = imv.uf || "—";
+    document.getElementById("munRef").textContent = imv.municipio || "—";
+
+    // demais campos
+    document.getElementById("kv_sigef").textContent     = imv.codigoImovel || "—";
+    document.getElementById("kv_status").textContent    = imv.status || "—";
+    document.getElementById("kv_area").textContent      = imv.areaHectares || "—";
+    document.getElementById("kv_denom").textContent     = imv.nomeArea || "—";
+    document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
+    document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
+
+    // Lotes
+    configurarSelecaoDeLotes(imv);
   }
 
-  // salvar (UF/Município vêm do imóvel; agente é selecionável)
-  document.getElementById("btnSalvar").addEventListener("click", ()=>{
-    const uf = document.getElementById("ufRef").textContent.trim();
-    const mun = document.getElementById("munRef").textContent.trim();
-    const agente = document.getElementById("agenteFinanceiro").value;
+  function configurarSelecaoDeLotes(imv){
+    const wrap = document.getElementById("wrapLote");
+    const notaUnico = document.getElementById("notaLoteUnico");
+    const boxResumoLote = document.getElementById("boxResumoLote");
+    const sel = document.getElementById("selectLote");
 
-    if(!agente){ toast("Selecione o agente financeiro.", "erro"); return; }
+    boxResumoLote.style.display = "none";
+    sel.innerHTML = '<option value="" disabled selected>Selecione o lote</option>';
+
+    // filtra lotes por sncrRef se existir; se não existir, usa todos quando desmembrado
+    let lotesFiltrados = ctx.lotes;
+    if (ctx.lotes.length && ctx.lotes[0]?.sncrRef){
+      lotesFiltrados = ctx.lotes.filter(l => l.sncrRef === imv.parcelaCodigo);
+    }
+
+    if (ctx.desmembrado && lotesFiltrados.length){
+      wrap.style.display = "block";
+      notaUnico.style.display = "none";
+      lotesFiltrados.forEach((l, i)=>{
+        const opt = document.createElement("option");
+        // cria um id interno estável (SIGEF preferido, cai para índice)
+        const id = l.id || l.sigef || String(i);
+        opt.value = String(id);
+        opt.textContent = `${l.denom || l.denominacao || 'Lote'} — ${(l.sigef || '').toString()}`;
+        sel.appendChild(opt);
+      });
+    }else{
+      // não desmembrado
+      wrap.style.display = "none";
+      notaUnico.style.display = "block";
+    }
+  }
+
+  function onChangeLote(){
+    const sel = document.getElementById("selectLote");
+    const chosenId = sel.value;
+    if (!chosenId) return;
+
+    // busca lote por id/sigef
+    const imvIdx = parseInt(document.getElementById("selectImovel").value, 10);
+    const imv = ctx.imoveis[imvIdx];
+    let lot = ctx.lotes.find(l => String(l.id || l.sigef) === chosenId);
+    if (!lot && ctx.lotes[0]?.sncrRef){
+      lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === chosenId);
+    }
+
+    if (!lot) return;
+
+    document.getElementById("boxResumoLote").style.display = "block";
+    document.getElementById("lot_denom").textContent  = lot.denom || lot.denominacao || "—";
+    document.getElementById("lot_sigef").textContent  = lot.sigef || "—";
+    document.getElementById("lot_data").textContent   = lot.dataEntrada || "—";
+    document.getElementById("lot_resp").textContent   = lot.responsavel || "—";
+    document.getElementById("lot_rt").textContent     = lot.docRT || "—";
+    document.getElementById("lot_status").textContent = lot.status || "—";
+  }
+
+  // salvar seleção
+  function salvar(){
+    const ag = document.getElementById("agenteFinanceiro").value;
+    const imvIdxStr = document.getElementById("selectImovel").value;
+
+    if (!imvIdxStr){ toast("Selecione o imóvel (SNCR).", "erro"); return; }
+    if (!ag){ toast("Selecione o agente financeiro.", "erro"); return; }
+
+    const imvIdx = parseInt(imvIdxStr, 10);
+    const imv = ctx.imoveis[imvIdx];
+
+    let loteSelecionado = null;
+    if (ctx.desmembrado){
+      const selLote = document.getElementById("selectLote").value;
+      if (!selLote){ toast("Selecione o lote.", "erro"); return; }
+      let lot = ctx.lotes.find(l => String(l.id || l.sigef) === selLote);
+      if (!lot && ctx.lotes[0]?.sncrRef){
+        lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === selLote);
+      }
+      loteSelecionado = {
+        id: String(lot?.id || lot?.sigef || ""),
+        denom: lot?.denom || lot?.denominacao || "",
+        sigef: lot?.sigef || "",
+        dataEntrada: lot?.dataEntrada || "",
+        responsavel: lot?.responsavel || "",
+        docRT: lot?.docRT || "",
+        status: lot?.status || ""
+      };
+    }else{
+      loteSelecionado = { id: "unico", denom: "Lote Único (Total)" };
+    }
 
     const payload = {
-      ufRef: uf, munRef: mun,
-      linhaFin: document.getElementById("linhaFin").textContent.trim(),
-      agente
+      imovelIndex: imvIdx,
+      sncr: imv.parcelaCodigo,
+      uf: imv.uf, municipio: imv.municipio,
+      resumoImovel: {
+        sigef: imv.codigoImovel, status: imv.status, area: imv.areaHectares,
+        denom: imv.nomeArea, cns: imv.registroCns, matricula: imv.registroMatricula
+      },
+      loteSelecionado,
+      agente: ag
     };
-    localStorage.setItem("beneficiario_resumo", JSON.stringify(payload));
-    toast("Resumo salvo.");
-  });
 
-  // inicialização
+    setJSON("beneficiario_etapa1", payload);
+    toast("Etapa 1 salva.");
+  }
+
+  // eventos
+  document.getElementById("selectImovel").addEventListener("change", (e)=>{
+    atualizarResumoDoImovel(e.target.value);
+  });
+  document.getElementById("selectLote").addEventListener("change", onChangeLote);
+  document.getElementById("btnSalvar").addEventListener("click", salvar);
+
+  // init
   document.addEventListener("DOMContentLoaded", ()=>{
-    if (window.M){
-      const tips = document.querySelectorAll(".tooltipped");
-      if (tips.length) M.Tooltip.init(tips);
+    if (!ctx.imoveis.length){
+      toast("Nenhum imóvel encontrado. Volte e cadastre o imóvel.", "erro");
     }
-    preencherResumoDoImovel();
-    restaurarAgente();
+    preencherSelectImovel();
   });
 </script>
 </body>
