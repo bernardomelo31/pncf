@@ -24,6 +24,7 @@
     .static-field{
       height:44px; display:flex; align-items:center; padding:0 12px;
       border:1px solid #cfd8dc; border-radius:4px; background:#f7f9fc; color:#37474f; font-weight:600;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
     .form__input select.browser-default{
       height:44px !important; line-height:44px !important; border:1px solid #cfd8dc !important;
@@ -35,7 +36,7 @@
     .msg-erro{ background:#ffcdd2; color:#b71c1c; }
 
     /* tabela-resumo leve */
-    .kv{ display:grid; grid-template-columns: 200px 1fr; gap:6px 12px; }
+    .kv{ display:grid; grid-template-columns: 220px 1fr; gap:6px 12px; }
     .kv div{ padding:6px 10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
     .kv .k{ font-weight:700; color:#455a64; background:#f3f7fb; }
   </style>
@@ -92,7 +93,8 @@
           <div class="kv" id="kvImovel" style="margin-top:8px;">
             <div class="k">Certificação SIGEF</div><div id="kv_sigef">—</div>
             <div class="k">Status</div><div id="kv_status">—</div>
-            <div class="k">Área (ha)</div><div id="kv_area">—</div>
+            <div class="k">Área total do imóvel (ha)</div><div id="kv_area">—</div>
+            <div class="k">Área a adquirir (ha)</div><div id="kv_area_adquirir">—</div>
             <div class="k">Denominação</div><div id="kv_denom">—</div>
             <div class="k">CNS</div><div id="kv_cns">—</div>
             <div class="k">Matrícula</div><div id="kv_matricula">—</div>
@@ -103,6 +105,7 @@
             <div class="kv">
               <div class="k">Denominação</div><div id="lot_denom">—</div>
               <div class="k">SIGEF</div><div id="lot_sigef">—</div>
+              <div class="k">Área do lote (ha)</div><div id="lot_area">—</div>
               <div class="k">Data de entrada</div><div id="lot_data">—</div>
               <div class="k">Responsável Técnico(a)</div><div id="lot_resp">—</div>
               <div class="k">Documento de RT</div><div id="lot_rt">—</div>
@@ -160,11 +163,16 @@
     setTimeout(()=> box.style.display="none", 3500);
   }
 
+  // parse/format hectares "25,0000" <-> 25
+  function parseHa(str){ if(!str) return 0; return parseFloat(String(str).replace(/\./g,'').replace(',','.')) || 0; }
+  function formatHa(num){ return (Number(num)||0).toFixed(4).replace('.',','); }
+
   // --- estado vindo do imovel.html ---
   const ctx = {
     imoveis:        getJSON("imoveis", []),
-    lotes:          getJSON("lotes", []), // se existir; idealmente cada lote tem {sncrRef, denom, sigef, ...}
-    desmembrado:    localStorage.getItem("imovelDesmembrado") === "true"
+    lotes:          getJSON("lotes", []), // se existir
+    desmembrado:    localStorage.getItem("imovelDesmembrado") === "true",
+    laudoPayload:   getJSON("laudo_avaliacao_completo_v1", null) // para tentar ler readonly.areaAdquirida
   };
 
   // popula select de imóveis
@@ -183,16 +191,37 @@
     if (salvo && salvo.imovelIndex != null && ctx.imoveis[salvo.imovelIndex]){
       sel.value = String(salvo.imovelIndex);
       atualizarResumoDoImovel(salvo.imovelIndex);
-      // restautar lote
+
+      // restaura lote (se houver)
       if (document.getElementById("wrapLote").style.display !== "none"){
         const selLote = document.getElementById("selectLote");
         selLote.value = salvo.loteSelecionado?.id ?? "";
         if (selLote.value) onChangeLote();
       }
+
       // restaura agente
       const ag = document.getElementById("agenteFinanceiro");
       if (salvo.agente) ag.value = salvo.agente;
     }
+  }
+
+  // tenta obter a área a adquirir (string "xx,xxxx") de forma robusta
+  function obterAreaAdquirir(imv){
+    // 1) prioriza payload do laudo (se já gerado em imoveis.html)
+    const laudo = ctx.laudoPayload;
+    const areaPayload = laudo?.readonly?.areaAdquirida;
+    if (areaPayload && typeof areaPayload === "string" && areaPayload.trim()){
+      return areaPayload.trim();
+    }
+
+    // 2) calcula fallback
+    if (ctx.desmembrado){
+      // soma dos lotes (se existirem)
+      const soma = (ctx.lotes || []).reduce((acc, l)=> acc + parseHa(l.areaHa), 0);
+      if (soma > 0) return formatHa(soma);
+    }
+    // 3) não desmembrado -> usa área total do imóvel
+    return imv?.areaHectares || "—";
   }
 
   // ao escolher imóvel, mostra resumo e configura lote
@@ -208,6 +237,7 @@
     document.getElementById("kv_sigef").textContent     = imv.codigoImovel || "—";
     document.getElementById("kv_status").textContent    = imv.status || "—";
     document.getElementById("kv_area").textContent      = imv.areaHectares || "—";
+    document.getElementById("kv_area_adquirir").textContent = obterAreaAdquirir(imv) || "—";
     document.getElementById("kv_denom").textContent     = imv.nomeArea || "—";
     document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
     document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
@@ -236,7 +266,6 @@
       notaUnico.style.display = "none";
       lotesFiltrados.forEach((l, i)=>{
         const opt = document.createElement("option");
-        // cria um id interno estável (SIGEF preferido, cai para índice)
         const id = l.id || l.sigef || String(i);
         opt.value = String(id);
         opt.textContent = `${l.denom || l.denominacao || 'Lote'} — ${(l.sigef || '').toString()}`;
@@ -254,19 +283,19 @@
     const chosenId = sel.value;
     if (!chosenId) return;
 
-    // busca lote por id/sigef
     const imvIdx = parseInt(document.getElementById("selectImovel").value, 10);
     const imv = ctx.imoveis[imvIdx];
+
     let lot = ctx.lotes.find(l => String(l.id || l.sigef) === chosenId);
     if (!lot && ctx.lotes[0]?.sncrRef){
       lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === chosenId);
     }
-
     if (!lot) return;
 
     document.getElementById("boxResumoLote").style.display = "block";
     document.getElementById("lot_denom").textContent  = lot.denom || lot.denominacao || "—";
     document.getElementById("lot_sigef").textContent  = lot.sigef || "—";
+    document.getElementById("lot_area").textContent   = lot.areaHa || "—";
     document.getElementById("lot_data").textContent   = lot.dataEntrada || "—";
     document.getElementById("lot_resp").textContent   = lot.responsavel || "—";
     document.getElementById("lot_rt").textContent     = lot.docRT || "—";
@@ -285,6 +314,7 @@
     const imv = ctx.imoveis[imvIdx];
 
     let loteSelecionado = null;
+    let areaLoteStr = "";
     if (ctx.desmembrado){
       const selLote = document.getElementById("selectLote").value;
       if (!selLote){ toast("Selecione o lote.", "erro"); return; }
@@ -292,6 +322,7 @@
       if (!lot && ctx.lotes[0]?.sncrRef){
         lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === selLote);
       }
+      areaLoteStr = lot?.areaHa || "";
       loteSelecionado = {
         id: String(lot?.id || lot?.sigef || ""),
         denom: lot?.denom || lot?.denominacao || "",
@@ -299,11 +330,15 @@
         dataEntrada: lot?.dataEntrada || "",
         responsavel: lot?.responsavel || "",
         docRT: lot?.docRT || "",
-        status: lot?.status || ""
+        status: lot?.status || "",
+        areaHa: areaLoteStr
       };
     }else{
       loteSelecionado = { id: "unico", denom: "Lote Único (Total)" };
     }
+
+    // área a adquirir total (do payload ou cálculo)
+    const areaAdquirirStr = obterAreaAdquirir(imv);
 
     const payload = {
       imovelIndex: imvIdx,
@@ -311,6 +346,7 @@
       uf: imv.uf, municipio: imv.municipio,
       resumoImovel: {
         sigef: imv.codigoImovel, status: imv.status, area: imv.areaHectares,
+        areaAdquirir: areaAdquirirStr,
         denom: imv.nomeArea, cns: imv.registroCns, matricula: imv.registroMatricula
       },
       loteSelecionado,
@@ -322,9 +358,7 @@
   }
 
   // eventos
-  document.getElementById("selectImovel").addEventListener("change", (e)=>{
-    atualizarResumoDoImovel(e.target.value);
-  });
+  document.getElementById("selectImovel").addEventListener("change", (e)=> atualizarResumoDoImovel(e.target.value));
   document.getElementById("selectLote").addEventListener("change", onChangeLote);
   document.getElementById("btnSalvar").addEventListener("click", salvar);
 
