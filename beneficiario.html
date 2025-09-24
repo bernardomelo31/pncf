@@ -8,10 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
 
   <style>
-    :root{
-      --gap-x:16px;
-      --gap-y:14px;
-    }
+    :root{ --gap-x:20px; --gap-y:16px; }
     body{ background:#fafafa; padding:20px; }
     .btn-square{ border-radius:0 !important; }
     .btn-add{ background:#1976d2 !important; color:#fff !important; }
@@ -20,32 +17,44 @@
 
     .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
     .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
+    .form-section h6{ margin:0 0 .5rem 0; color:#1976d2; }
 
-    /* Grid consistente (sem brigar com Materialize) */
-    .row{ display:flex; flex-wrap:wrap; gap:var(--gap-y) var(--gap-x); margin-bottom:0; }
-    .form__input{ flex:1 1 260px; min-width:240px; }
-    .form__input label{ display:block; margin-bottom:4px; font-weight:600; color:#444; }
-    .mb{ margin-bottom:var(--gap-y); }
+    /* ====== GRADE ====== */
+    .grid-3{ display:grid; grid-template-columns:repeat(3,minmax(260px,1fr)); gap:var(--gap-y) var(--gap-x); align-items:start; }
+    .grid-2{ display:grid; grid-template-columns:repeat(2,minmax(260px,1fr)); gap:var(--gap-y) var(--gap-x); align-items:start; }
+    .grid-1{ display:grid; grid-template-columns:1fr; gap:var(--gap-y) var(--gap-x); }
+    .field label{ display:block; margin:0 0 6px 0; font-weight:600; color:#444; }
 
-    .static-field{
-      height:44px; display:flex; align-items:center; padding:0 12px;
-      border:1px solid #cfd8dc; border-radius:4px; background:#f7f9fc; color:#37474f; font-weight:600;
+    /* Altura unificada e visual */
+    .field input[type="text"],
+    .field input[type="tel"],
+    .field select.browser-default,
+    .static-field,
+    .choice{
+      height:44px !important; line-height:44px !important;
+      border:1px solid #cfd8dc !important; border-radius:4px !important;
+      background:#fff !important; padding:0 10px !important; width:100%;
+      box-sizing:border-box;
     }
-    .form__input select.browser-default,
-    .form__input input[type="text"],
-    .form__input input[type="tel"]{
-      height:44px !important; line-height:44px !important; border:1px solid #cfd8dc !important;
-      border-radius:4px !important; background:#fff !important; padding:0 10px !important;
-    }
+    .static-field{ background:#f7f9fc !important; color:#37474f; font-weight:600; display:flex; align-items:center; }
+    .choice{ display:flex; align-items:center; gap:16px; }
+
+    /* Tabela-resumo leve */
+    .kv{ display:grid; grid-template-columns: 240px 1fr; gap:6px 12px; }
+    .kv div{ padding:6px 10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
+    .kv .k{ font-weight:700; color:#455a64; background:#f3f7fb; }
 
     #mensagem{ display:none; padding:10px; border-radius:6px; font-weight:600; margin:12px 0; }
     .msg-sucesso{ background:#c8e6c9; color:#256029; }
     .msg-erro{ background:#ffcdd2; color:#b71c1c; }
 
-    /* Key/Value “Resumo” */
-    .kv{ display:grid; grid-template-columns: 220px 1fr; gap:8px 14px; }
-    .kv div{ padding:10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
-    .kv .k{ font-weight:700; color:#455a64; background:#f3f7fb; }
+    /* Responsivo */
+    @media (max-width: 1100px){
+      .grid-3{ grid-template-columns:repeat(2,minmax(260px,1fr)); }
+    }
+    @media (max-width: 760px){
+      .grid-3, .grid-2{ grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
@@ -64,18 +73,18 @@
 
         <div id="mensagem"></div>
 
-        <!-- Seleção inicial -->
+        <!-- Seleção do Imóvel/Lote -->
         <div class="form-section">
           <h5><i class="material-icons">home</i>Seleção do Imóvel e Lote</h5>
 
-          <div class="row">
-            <div class="form__input">
+          <div class="grid-3">
+            <div class="field">
               <label for="selectImovel">Imóvel (SNCR) *</label>
               <select id="selectImovel" class="browser-default" required>
                 <option value="" disabled selected>Selecione o imóvel (SNCR)</option>
               </select>
             </div>
-            <div class="form__input" id="wrapLote" style="display:none;">
+            <div id="wrapLote" class="field" style="display:none;">
               <label for="selectLote">Lote *</label>
               <select id="selectLote" class="browser-default">
                 <option value="" disabled selected>Selecione o lote</option>
@@ -83,31 +92,38 @@
             </div>
           </div>
 
-          <div id="notaLoteUnico" class="static-field mb" style="display:none;">
+          <div id="notaLoteUnico" class="static-field" style="display:none; margin-top:6px;">
             Imóvel não desmembrado: lote único (Total).
           </div>
         </div>
 
-        <!-- Resumo do imóvel -->
+        <!-- Resumo do imóvel + área adquirida -->
         <div class="form-section">
           <h5><i class="material-icons">summarize</i>Resumo do Imóvel Selecionado</h5>
 
-          <div class="row">
-            <div class="form__input"><label>UF de referência</label><div id="ufRef"  class="static-field">—</div></div>
-            <div class="form__input"><label>Município de referência</label><div id="munRef" class="static-field">—</div></div>
+          <div class="grid-3">
+            <div class="field"><label>UF de referência</label><div id="ufRef"  class="static-field">—</div></div>
+            <div class="field"><label>Município de referência</label><div id="munRef" class="static-field">—</div></div>
           </div>
 
           <div class="kv" id="kvImovel" style="margin-top:8px;">
             <div class="k">Certificação SIGEF</div><div id="kv_sigef">—</div>
             <div class="k">Status</div><div id="kv_status">—</div>
-            <div class="k">Área (ha)</div><div id="kv_area">—</div>
+            <div class="k">Área total do imóvel (ha)</div><div id="kv_area">—</div>
             <div class="k">Denominação</div><div id="kv_denom">—</div>
             <div class="k">CNS</div><div id="kv_cns">—</div>
             <div class="k">Matrícula</div><div id="kv_matricula">—</div>
           </div>
 
+          <div class="grid-3" style="margin-top:12px;">
+            <div class="field" style="max-width:360px;">
+              <label>Área a ser adquirida (ha)</label>
+              <div id="areaAdquirida" class="static-field">—</div>
+            </div>
+          </div>
+
           <div id="boxResumoLote" style="display:none; margin-top:12px;">
-            <h6 style="color:#1976d2; margin:0 0 6px 0;">Resumo do Lote</h6>
+            <h6>Resumo do Lote</h6>
             <div class="kv">
               <div class="k">Denominação</div><div id="lot_denom">—</div>
               <div class="k">SIGEF</div><div id="lot_sigef">—</div>
@@ -115,8 +131,143 @@
               <div class="k">Responsável Técnico(a)</div><div id="lot_resp">—</div>
               <div class="k">Documento de RT</div><div id="lot_rt">—</div>
               <div class="k">Status</div><div id="lot_status">—</div>
+              <div class="k">Área do lote (ha)</div><div id="lot_area">—</div>
+            </div>
+          </div>
+        </div>
 
-              <div class="k">Área a ser adquirida (ha)</div><div id="lot_area">—</div> <!-- NOVO: somente leitura -->
+        <!-- Dados Pessoais -->
+        <div class="form-section">
+          <h5><i class="material-icons">badge</i>Beneficiário — Dados Pessoais</h5>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="bp_cpf">CPF *</label>
+              <input id="bp_cpf" type="text" placeholder="000.000.000-00">
+            </div>
+            <div class="field">
+              <label>Nome</label>
+              <div id="bp_nome" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>Gênero</label>
+              <div id="bp_genero" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label>Estado civil</label>
+              <div id="bp_ec" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>Data de nascimento</label>
+              <div id="bp_nasc" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>NIS (PIS/PASEP)</label>
+              <div id="bp_nis" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label>Estado de naturalidade</label>
+              <div id="bp_natuf" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>Município de naturalidade</label>
+              <div id="bp_natmun" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label>Nome do pai</label>
+              <div id="bp_pai" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>Nome da mãe</label>
+              <div id="bp_mae" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="cadunico">Número do CadÚnico *</label>
+              <input id="cadunico" type="text" placeholder="00000000000">
+            </div>
+            <div class="field">
+              <label>Possui DAP?</label>
+              <div class="choice">
+                <label style="display:flex;align-items:center;gap:6px;"><input name="hasDap" type="radio" value="sim"><span>Sim</span></label>
+                <label style="display:flex;align-items:center;gap:6px;"><input name="hasDap" type="radio" value="nao" checked><span>Não</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label for="numDap">Número DAP</label>
+              <input id="numDap" type="text" placeholder="Informe apenas se possuir" disabled>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="rg">RG *</label>
+              <input id="rg" type="text" placeholder="Documento de identificação">
+            </div>
+            <div class="field">
+              <label for="orgao">Órgão emissor *</label>
+              <input id="orgao" type="text" placeholder="SSP, DETRAN...">
+            </div>
+            <div class="field">
+              <label for="dataRg">Data de emissão *</label>
+              <input id="dataRg" type="text" placeholder="dd/mm/aaaa">
+            </div>
+          </div>
+        </div>
+
+        <!-- Endereço -->
+        <div class="form-section">
+          <h5><i class="material-icons">place</i>Endereço e Contato</h5>
+
+          <div class="grid-3">
+            <div class="field">
+              <label for="cep">CEP *</label>
+              <input type="text" id="cep" placeholder="00000-000">
+            </div>
+            <div class="field">
+              <label>UF *</label>
+              <div id="uf" class="static-field">—</div>
+            </div>
+            <div class="field">
+              <label>Município *</label>
+              <div id="municipio" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label>Bairro</label>
+              <div id="bairro" class="static-field">—</div>
+            </div>
+            <div class="field" style="grid-column: span 2;">
+              <label>Endereço (Rua, Qd., Lt.) *</label>
+              <div id="endereco" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="field">
+              <label>Número *</label>
+              <input id="numero" type="text" placeholder="000">
+            </div>
+            <div class="field">
+              <label>Complemento</label>
+              <input id="compl" type="text" placeholder="Opcional">
+            </div>
+            <div class="field">
+              <label>Celular *</label>
+              <input id="celular" type="tel" placeholder="(00) 00000-0000">
             </div>
           </div>
         </div>
@@ -124,8 +275,8 @@
         <!-- Agente financeiro -->
         <div class="form-section">
           <h5><i class="material-icons">account_balance</i>Agente Financeiro de Interesse</h5>
-          <div class="row">
-            <div class="form__input">
+          <div class="grid-3">
+            <div class="field" style="max-width:420px;">
               <label for="agenteFinanceiro">Selecione *</label>
               <select id="agenteFinanceiro" class="browser-default" required>
                 <option value="" disabled selected>Selecione</option>
@@ -136,98 +287,11 @@
           </div>
         </div>
 
-        <!-- Documentos / DAP / Endereço (mock + entradas do usuário) -->
-        <div class="form-section">
-          <h5><i class="material-icons">person</i>Dados do Beneficiário</h5>
-
-          <div class="row">
-            <div class="form__input">
-              <label for="cadunico">Número do CadÚnico *</label>
-              <input type="text" id="cadunico" placeholder="0000000000">
-            </div>
-            <div class="form__input">
-              <label>Possui DAP?</label>
-              <div class="static-field" style="gap:14px;">
-                <label style="display:flex;align-items:center;gap:6px;"><input name="hasDap" type="radio" value="sim"><span>Sim</span></label>
-                <label style="display:flex;align-items:center;gap:6px;"><input name="hasDap" type="radio" value="nao" checked><span>Não</span></label>
-              </div>
-            </div>
-            <div class="form__input">
-              <label for="numDap">Número DAP</label>
-              <input type="text" id="numDap" placeholder="Informe apenas se possuir">
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="form__input">
-              <label for="rg">RG *</label>
-              <input type="text" id="rg" placeholder="Documento de identificação">
-            </div>
-            <div class="form__input">
-              <label for="orgao">Órgão emissor *</label>
-              <input type="text" id="orgao" placeholder="SSP, DETRAN...">
-            </div>
-            <div class="form__input">
-              <label for="emissao">Data de emissão *</label>
-              <input type="text" id="emissao" placeholder="dd/mm/aaaa">
-            </div>
-          </div>
-        </div>
-
-        <!-- Endereço & Contato (CEP auto preenche mock) -->
-        <div class="form-section">
-          <h5><i class="material-icons">location_on</i>Endereço e Contato</h5>
-
-          <div class="row">
-            <div class="form__input">
-              <label for="cep">CEP *</label>
-              <input type="text" id="cep" placeholder="00000-000">
-            </div>
-            <div class="form__input">
-              <label for="uf">UF *</label>
-              <div id="uf" class="static-field">—</div>
-            </div>
-            <div class="form__input">
-              <label for="municipio">Município *</label>
-              <div id="municipio" class="static-field">—</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="form__input">
-              <label for="bairro">Bairro</label>
-              <div id="bairro" class="static-field">—</div>
-            </div>
-            <div class="form__input" style="flex:2 1 400px;">
-              <label for="endereco">Endereço (Rua, Qd., Lt.) *</label>
-              <div id="endereco" class="static-field">—</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="form__input">
-              <label for="numero">Número *</label>
-              <input type="text" id="numero" placeholder="000">
-            </div>
-            <div class="form__input">
-              <label for="complemento">Complemento</label>
-              <input type="text" id="complemento" placeholder="Opcional">
-            </div>
-            <div class="form__input">
-              <label for="celular">Celular *</label>
-              <input type="tel" id="celular" placeholder="(00) 00000-0000">
-            </div>
-          </div>
-        </div>
-
-        <div class="right-align" style="margin:12px 0; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
-          <button id="btnLimpar" class="btn btn-danger btn-square waves-effect" type="button">
-            <i class="material-icons left">refresh</i>LIMPAR FORMULÁRIO
+        <div style="margin:12px 0; display:flex; gap:8px; justify-content:flex-end;">
+          <button id="btnLimpar" class="btn btn-danger btn-square waves-effect">
+            <i class="material-icons left">clear</i>Limpar (Etapa 1)
           </button>
-          <a href="index.html" class="btn btn-danger btn-square waves-effect">
-            <i class="material-icons left">arrow_back</i>VOLTAR
-          </a>
-          <button id="btnSalvar" class="btn btn-add btn-square waves-effect" type="button">
+          <button id="btnSalvar" class="btn btn-add btn-square waves-effect">
             <i class="material-icons left">save</i>SALVAR
           </button>
           <a id="btnProximo" href="beneficiario-etapa2.html" class="btn btn-add btn-square waves-effect">
@@ -242,230 +306,303 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-  /* util localStorage */
-  const getJSON = (k, fb) => { try{ const r = localStorage.getItem(k); return r? JSON.parse(r): fb; }catch(e){ return fb; } };
-  const setJSON = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+  /* ===== Helpers ===== */
+  function getJSON(key, fallback){ try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fallback; }catch(e){ return fallback; } }
+  function setJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+  function toast(txt, tipo="sucesso"){ const box=document.getElementById("mensagem"); box.textContent=txt; box.className=(tipo==="erro")?"msg-erro":"msg-sucesso"; box.style.display="block"; setTimeout(()=>box.style.display="none",3200); }
 
+  const fmtBR = (n)=> n.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+  function parsePt(v){ if(v==null) return NaN; if(typeof v==="number") return v; const s=String(v).replace(/\./g,"").replace(",","."); const n=parseFloat(s); return isNaN(n)?NaN:n; }
+  function getLoteAreaHa(l){ const cand=l?.areaHa ?? l?.areaLote ?? l?.area ?? l?.areaLoteHa; return parsePt(cand); }
+
+  /* ===== Estado de imóveis/lotes ===== */
   const ctx = {
     imoveis:     getJSON("imoveis", []),
     lotes:       getJSON("lotes", []),
-    desmembrado: localStorage.getItem("imovelDesmembrado") === "true",
-    laudo:       getJSON("laudo_avaliacao_completo_v1", null)
+    desmembrado: localStorage.getItem("imovelDesmembrado")==="true"
   };
 
-  const $ = sel => document.querySelector(sel);
-
-  function toast(txt, tipo="sucesso"){
-    const el = $("#mensagem");
-    el.textContent = txt;
-    el.className = (tipo==="erro")? "msg-erro" : "msg-sucesso";
-    el.style.display = "block";
-    setTimeout(()=> el.style.display="none", 3000);
-  }
-
-  /* SELECT IMÓVEL */
+  /* ===== Preencher select de imóveis ===== */
   function preencherSelectImovel(){
-    const sel = $("#selectImovel");
+    const sel = document.getElementById("selectImovel");
     sel.innerHTML = '<option value="" disabled selected>Selecione o imóvel (SNCR)</option>';
-    ctx.imoveis.forEach((imv, i)=>{
-      const o = document.createElement("option");
-      o.value = String(i);
-      o.textContent = `${imv.parcelaCodigo} — ${imv.nomeArea}`;
+    ctx.imoveis.forEach((imv, idx)=>{
+      const o=document.createElement("option");
+      o.value=String(idx); o.textContent=`${imv.parcelaCodigo} — ${imv.nomeArea}`;
       sel.appendChild(o);
     });
 
     const salvo = getJSON("beneficiario_etapa1", null);
-    if (salvo && salvo.imovelIndex != null && ctx.imoveis[salvo.imovelIndex]){
-      sel.value = String(salvo.imovelIndex);
+    if (salvo && salvo.imovelIndex!=null && ctx.imoveis[salvo.imovelIndex]){
+      sel.value=String(salvo.imovelIndex);
       atualizarResumoDoImovel(salvo.imovelIndex);
-
-      // restauro lote se aplicável
-      if ($("#wrapLote").style.display !== "none" && salvo.loteSelecionado?.id){
-        $("#selectLote").value = salvo.loteSelecionado.id;
-        onChangeLote(); // também preenche área a ser adquirida
+      const ag=document.getElementById("agenteFinanceiro"); if(salvo.agente) ag.value=salvo.agente;
+      if(ctx.desmembrado && salvo.loteSelecionado?.id){
+        popularLotes(ctx.imoveis[salvo.imovelIndex]);
+        document.getElementById("selectLote").value=salvo.loteSelecionado.id;
+        onChangeLote();
       }
-
-      // agente
-      if (salvo.agente) $("#agenteFinanceiro").value = salvo.agente;
     }
   }
 
   function atualizarResumoDoImovel(index){
-    const imv = ctx.imoveis[index];
-    if(!imv) return;
+    const imv = ctx.imoveis[index]; if(!imv) return;
 
-    $("#ufRef").textContent  = imv.uf || "—";
-    $("#munRef").textContent = imv.municipio || "—";
+    document.getElementById("ufRef").textContent   = imv.uf || "—";
+    document.getElementById("munRef").textContent  = imv.municipio || "—";
+    document.getElementById("kv_sigef").textContent     = imv.codigoImovel || "—";
+    document.getElementById("kv_status").textContent    = imv.status || "—";
+    document.getElementById("kv_area").textContent      = imv.areaHectares || "—";
+    document.getElementById("kv_denom").textContent     = imv.nomeArea || "—";
+    document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
+    document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
 
-    $("#kv_sigef").textContent     = imv.codigoImovel || "—";
-    $("#kv_status").textContent    = imv.status || "—";
-    $("#kv_area").textContent      = imv.areaHectares || "—";
-    $("#kv_denom").textContent     = imv.nomeArea || "—";
-    $("#kv_cns").textContent       = imv.registroCns || "—";
-    $("#kv_matricula").textContent = imv.registroMatricula || "—";
+    popularLotes(imv);
 
-    configurarSelecaoDeLotes(imv);
+    if(!ctx.desmembrado){
+      const a=parsePt(imv.areaHectares);
+      document.getElementById("areaAdquirida").textContent = isNaN(a) ? "—" : fmtBR(a);
+    }else{
+      document.getElementById("areaAdquirida").textContent = "—";
+    }
   }
 
-  function configurarSelecaoDeLotes(imv){
-    const wrap = $("#wrapLote");
-    const nota = $("#notaLoteUnico");
-    const sel  = $("#selectLote");
-    const boxResumo = $("#boxResumoLote");
+  function popularLotes(imv){
+    const wrap=document.getElementById("wrapLote");
+    const nota=document.getElementById("notaLoteUnico");
+    const sel=document.getElementById("selectLote");
+    const boxResumo=document.getElementById("boxResumoLote");
 
-    boxResumo.style.display = "none";
-    $("#lot_area").textContent = "—";
+    boxResumo.style.display="none";
+    sel.innerHTML='<option value="" disabled selected>Selecione o lote</option>';
 
-    sel.innerHTML = '<option value="" disabled selected>Selecione o lote</option>';
-
-    let lotesFiltrados = ctx.lotes;
-    if (ctx.lotes.length && ctx.lotes[0]?.sncrRef){
-      lotesFiltrados = ctx.lotes.filter(l => l.sncrRef === imv.parcelaCodigo);
+    let lotesFiltrados=ctx.lotes;
+    if(ctx.lotes.length && ctx.lotes[0]?.sncrRef){
+      lotesFiltrados=ctx.lotes.filter(l=>l.sncrRef===imv.parcelaCodigo);
     }
 
-    if (ctx.desmembrado && lotesFiltrados.length){
-      wrap.style.display = "block";
-      nota.style.display = "none";
+    if(ctx.desmembrado && lotesFiltrados.length){
+      wrap.style.display="block"; nota.style.display="none";
       lotesFiltrados.forEach((l,i)=>{
-        const opt = document.createElement("option");
-        const id = l.id || l.sigef || String(i);
-        opt.value = String(id);
-        opt.textContent = `${l.denom || "Lote"} — ${(l.sigef||"")}`;
+        const opt=document.createElement("option");
+        const id=String(l.id || l.sigef || i);
+        opt.value=id; opt.textContent=`${l.denom || l.denominacao || 'Lote'} — ${(l.sigef || '').toString()}`;
         sel.appendChild(opt);
       });
-    } else {
-      wrap.style.display = "none";
-      nota.style.display = "block";
-
-      // área a ser adquirida quando NÃO desmembrado
-      const area = (ctx.laudo?.readonly?.areaAdquirida) || imv.areaHectares || "";
-      $("#boxResumoLote").style.display = "block";
-      $("#lot_denom").textContent  = "Lote Único (Total)";
-      $("#lot_sigef").textContent  = imv.codigoImovel || "—";
-      $("#lot_data").textContent   = "—";
-      $("#lot_resp").textContent   = "—";
-      $("#lot_rt").textContent     = "—";
-      $("#lot_status").textContent = imv.status || "—";
-      $("#lot_area").textContent   = area || "—";
+    }else{
+      wrap.style.display="none"; nota.style.display="block";
     }
   }
 
   function onChangeLote(){
-    const chosenId = $("#selectLote").value;
-    if(!chosenId) return;
-    const imvIdx = parseInt($("#selectImovel").value, 10);
-    const imv = ctx.imoveis[imvIdx];
+    const chosenId=document.getElementById("selectLote").value; if(!chosenId) return;
+    const imvIdx=parseInt(document.getElementById("selectImovel").value,10);
+    const imv=ctx.imoveis[imvIdx];
 
-    let lot = ctx.lotes.find(l => String(l.id || l.sigef) === chosenId);
+    let lot=ctx.lotes.find(l=>String(l.id || l.sigef)===chosenId);
     if(!lot && ctx.lotes[0]?.sncrRef){
-      lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === chosenId);
+      lot=ctx.lotes.find(l=>l.sncrRef===imv.parcelaCodigo && String(l.id || l.sigef)===chosenId);
     }
     if(!lot) return;
 
-    $("#boxResumoLote").style.display = "block";
-    $("#lot_denom").textContent  = lot.denom || "—";
-    $("#lot_sigef").textContent  = lot.sigef || "—";
-    $("#lot_data").textContent   = lot.dataEntrada || "—";
-    $("#lot_resp").textContent   = lot.responsavel || "—";
-    $("#lot_rt").textContent     = lot.docRT || "—";
-    $("#lot_status").textContent = lot.status || "—";
+    document.getElementById("boxResumoLote").style.display="block";
+    document.getElementById("lot_denom").textContent=lot.denom || lot.denominacao || "—";
+    document.getElementById("lot_sigef").textContent=lot.sigef || "—";
+    document.getElementById("lot_data").textContent=lot.dataEntrada || "—";
+    document.getElementById("lot_resp").textContent=lot.responsavel || "—";
+    document.getElementById("lot_rt").textContent  =lot.docRT || "—";
+    document.getElementById("lot_status").textContent=lot.status || "—";
 
-    // Área a ser adquirida (do lote)
-    $("#lot_area").textContent   = (lot.areaHa != null ? String(lot.areaHa) : "—");
+    const aLot=getLoteAreaHa(lot);
+    document.getElementById("lot_area").textContent=isNaN(aLot)?"—":fmtBR(aLot);
+    document.getElementById("areaAdquirida").textContent=isNaN(aLot)?"—":fmtBR(aLot);
   }
 
-  /* CEP → endereço fictício */
-  const CEP_FAKE = {
-    "70000-000": { uf:"DF", municipio:"Brasília", bairro:"Asa Norte", endereco:"SQN 409 Bl. A" },
-    "50000-000": { uf:"PE", municipio:"Recife",   bairro:"Boa Vista", endereco:"Rua das Flores, 123" },
+  /* ===== CPF -> “API” fictícia ===== */
+  const FAKE_DB = {
+    "222.222.222-22":{
+      nome:"Sebastião Mateus Melo",
+      genero:"Masculino",
+      ec:"Solteiro(a)",
+      nasc:"22/06/1982",
+      nis:"123.4567.890-1",
+      natuf:"DF",
+      natmun:"Brasília",
+      pai:"Renato Guilherme Melo",
+      mae:"Rosa Bárbara Sebastiana"
+    }
   };
-  $("#cep").addEventListener("blur", ()=>{
-    const v = $("#cep").value.trim();
-    const d = CEP_FAKE[v] || CEP_FAKE["50000-000"];
-    $("#uf").textContent        = d.uf;
-    $("#municipio").textContent = d.municipio;
-    $("#bairro").textContent    = d.bairro;
-    $("#endereco").textContent  = d.endereco;
+
+  function maskCPF(v){
+    v=v.replace(/\D/g,"").slice(0,11);
+    let out="";
+    if(v.length>0) out=v.slice(0,3);
+    if(v.length>3) out+="."+v.slice(3,6);
+    if(v.length>6) out+="."+v.slice(6,9);
+    if(v.length>9) out+="-"+v.slice(9,11);
+    return out;
+  }
+
+  const cpfInput=document.getElementById("bp_cpf");
+  cpfInput.addEventListener("input",e=>{ e.target.value=maskCPF(e.target.value); });
+  cpfInput.addEventListener("blur", ()=>{
+    const cpf=cpfInput.value.trim();
+    const d=FAKE_DB[cpf];
+    if(!d){ toast("CPF não encontrado na base fictícia. Preenchendo com traços.", "erro"); preencherPessoa(null); return; }
+    preencherPessoa(d);
+    toast("Dados preenchidos via API fictícia.");
   });
 
-  /* SALVAR */
+  function preencherPessoa(d){
+    const dash="—";
+    document.getElementById("bp_nome").textContent   = d?.nome   || dash;
+    document.getElementById("bp_genero").textContent = d?.genero || dash;
+    document.getElementById("bp_ec").textContent     = d?.ec     || dash;
+    document.getElementById("bp_nasc").textContent   = d?.nasc   || dash;
+    document.getElementById("bp_nis").textContent    = d?.nis    || dash;
+    document.getElementById("bp_natuf").textContent  = d?.natuf  || dash;
+    document.getElementById("bp_natmun").textContent = d?.natmun || dash;
+    document.getElementById("bp_pai").textContent    = d?.pai    || dash;
+    document.getElementById("bp_mae").textContent    = d?.mae    || dash;
+  }
+
+  /* ===== DAP habilita/desabilita número ===== */
+  Array.from(document.querySelectorAll('input[name="hasDap"]')).forEach(r=>{
+    r.addEventListener("change",(e)=>{
+      const en = e.target.value==="sim";
+      const num=document.getElementById("numDap");
+      num.disabled=!en; if(!en) num.value="";
+    });
+  });
+
+  /* ===== CEP -> endereço (fictício) ===== */
+  const fakeCepDB = {
+    "70000-000": { uf:"DF", municipio:"Brasília", bairro:"Asa Norte", endereco:"SQN 305 Bloco B" },
+    "01000-000": { uf:"SP", municipio:"São Paulo", bairro:"Sé", endereco:"Praça da Sé" },
+    "35930-050": { uf:"MG", municipio:"João Monlevade", bairro:"Alvorada", endereco:"Rua Lavras" }
+  };
+  function maskCEP(v){ v=v.replace(/\D/g,"").slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); return v; }
+  const cepInput=document.getElementById("cep");
+  cepInput.addEventListener("input",e=> e.target.value = maskCEP(e.target.value));
+  cepInput.addEventListener("blur", ()=>{
+    const cep=cepInput.value.trim();
+    const info=fakeCepDB[cep];
+    if(!info){ toast("CEP não encontrado (fictício).", "erro"); return; }
+    document.getElementById("uf").textContent = info.uf;
+    document.getElementById("municipio").textContent = info.municipio;
+    document.getElementById("bairro").textContent = info.bairro;
+    document.getElementById("endereco").textContent = info.endereco;
+  });
+
+  /* ===== Salvar & Limpar ===== */
   function salvar(){
-    const ag = $("#agenteFinanceiro").value;
-    const imvIdxStr = $("#selectImovel").value;
+    const ag=document.getElementById("agenteFinanceiro").value;
+    const imvIdxStr=document.getElementById("selectImovel").value;
     if(!imvIdxStr){ toast("Selecione o imóvel (SNCR).", "erro"); return; }
     if(!ag){ toast("Selecione o agente financeiro.", "erro"); return; }
 
-    const imvIdx = parseInt(imvIdxStr, 10);
-    const imv = ctx.imoveis[imvIdx];
+    const imvIdx=parseInt(imvIdxStr,10);
+    const imv=ctx.imoveis[imvIdx];
 
-    let loteSelecionado = null;
-    let areaAqu = null;
-
-    if (ctx.desmembrado){
-      const sel = $("#selectLote").value;
-      if (!sel){ toast("Selecione o lote.", "erro"); return; }
-      let lot = ctx.lotes.find(l => String(l.id || l.sigef) === sel);
+    let loteSelecionado=null, areaAdq=NaN;
+    if(ctx.desmembrado){
+      const idSel=document.getElementById("selectLote").value;
+      if(!idSel){ toast("Selecione o lote.", "erro"); return; }
+      let lot=ctx.lotes.find(l=>String(l.id || l.sigef)===idSel);
       if(!lot && ctx.lotes[0]?.sncrRef){
-        lot = ctx.lotes.find(l => l.sncrRef === imv.parcelaCodigo && String(l.id || l.sigef) === sel);
+        lot=ctx.lotes.find(l=>l.sncrRef===imv.parcelaCodigo && String(l.id || l.sigef)===idSel);
       }
-      loteSelecionado = {
-        id: String(lot?.id || lot?.sigef || ""),
-        denom: lot?.denom || "",
+      areaAdq=getLoteAreaHa(lot);
+      loteSelecionado={
+        id:String(lot?.id || lot?.sigef || ""),
+        denom: lot?.denom || lot?.denominacao || "",
         sigef: lot?.sigef || "",
         dataEntrada: lot?.dataEntrada || "",
         responsavel: lot?.responsavel || "",
         docRT: lot?.docRT || "",
         status: lot?.status || "",
-        areaHa:  (lot?.areaHa ?? null)
+        areaHa: areaAdq
       };
-      areaAqu = lot?.areaHa ?? null;
-    } else {
-      loteSelecionado = { id:"unico", denom:"Lote Único (Total)" };
-      areaAqu = (ctx.laudo?.readonly?.areaAdquirida) || imv.areaHectares || null;
+    }else{
+      areaAdq=parsePt(imv.areaHectares);
+      loteSelecionado={ id:"unico", denom:"Lote Único (Total)" };
     }
 
-    const payload = {
+    const payload={
       imovelIndex: imvIdx,
       sncr: imv.parcelaCodigo,
       uf: imv.uf, municipio: imv.municipio,
-      resumoImovel: {
+      resumoImovel:{
         sigef: imv.codigoImovel, status: imv.status, area: imv.areaHectares,
         denom: imv.nomeArea, cns: imv.registroCns, matricula: imv.registroMatricula
       },
       loteSelecionado,
-      areaAdquirida: areaAqu,     // <- guardado também aqui
-      agente: ag
+      areaAdquiridaHa: areaAdq,
+      agente: ag,
+      beneficiario:{
+        cpf: document.getElementById("bp_cpf").value.trim(),
+        cadunico: document.getElementById("cadunico").value.trim(),
+        hasDap: document.querySelector('input[name="hasDap"]:checked').value,
+        numDap: document.getElementById("numDap").value.trim(),
+        rg: document.getElementById("rg").value.trim(),
+        orgao: document.getElementById("orgao").value.trim(),
+        dataRg: document.getElementById("dataRg").value.trim()
+      },
+      endereco:{
+        cep: document.getElementById("cep").value.trim(),
+        uf: document.getElementById("uf").textContent,
+        municipio: document.getElementById("municipio").textContent,
+        bairro: document.getElementById("bairro").textContent,
+        logradouro: document.getElementById("endereco").textContent,
+        numero: document.getElementById("numero").value.trim(),
+        compl: document.getElementById("compl").value.trim(),
+        celular: document.getElementById("celular").value.trim()
+      }
     };
+
     setJSON("beneficiario_etapa1", payload);
+    localStorage.setItem("areaAdquiridaHa", String(areaAdq));
     toast("Etapa 1 salva.");
   }
 
-  /* LIMPAR */
   function limpar(){
     localStorage.removeItem("beneficiario_etapa1");
-    // campos simples
-    ["selectImovel","selectLote","agenteFinanceiro","cadunico","numDap","rg","orgao","emissao","cep","numero","complemento","celular"].forEach(id=>{
-      const el = document.getElementById(id); if (el) el.value = "";
-    });
-    // reset estáticos
-    ["uf","municipio","bairro","endereco","ufRef","munRef","kv_sigef","kv_status","kv_area","kv_denom","kv_cns","kv_matricula",
-     "lot_denom","lot_sigef","lot_data","lot_resp","lot_rt","lot_status","lot_area"].forEach(id=>{ const el = document.getElementById(id); if(el) el.textContent="—"; });
+    document.getElementById("selectImovel").value="";
+    document.getElementById("wrapLote").style.display="none";
+    document.getElementById("notaLoteUnico").style.display="none";
+    document.getElementById("selectLote").innerHTML='<option value="" disabled selected>Selecione o lote</option>';
+    ["kv_sigef","kv_status","kv_area","kv_denom","kv_cns","kv_matricula","ufRef","munRef"]
+      .forEach(id=> document.getElementById(id).textContent="—");
+    document.getElementById("boxResumoLote").style.display="none";
+    document.getElementById("areaAdquirida").textContent="—";
+    ["lot_denom","lot_sigef","lot_data","lot_resp","lot_rt","lot_status","lot_area"]
+      .forEach(id=> document.getElementById(id).textContent="—");
 
-    $("#boxResumoLote").style.display = "none";
-    $("#wrapLote").style.display = "none";
-    $("#notaLoteUnico").style.display = "none";
-    toast("Formulário limpo.");
+    // pessoais
+    document.getElementById("bp_cpf").value="";
+    preencherPessoa(null);
+    document.getElementById("cadunico").value="";
+    document.querySelector('input[name="hasDap"][value="nao"]').checked=true;
+    document.getElementById("numDap").value=""; document.getElementById("numDap").disabled=true;
+    document.getElementById("rg").value=""; document.getElementById("orgao").value=""; document.getElementById("dataRg").value="";
+
+    // endereço
+    document.getElementById("cep").value="";
+    ["uf","municipio","bairro","endereco"].forEach(id=> document.getElementById(id).textContent="—");
+    document.getElementById("numero").value=""; document.getElementById("compl").value=""; document.getElementById("celular").value="";
+    document.getElementById("agenteFinanceiro").value="";
+    toast("Etapa 1 limpa.");
   }
 
-  /* Eventos */
-  $("#selectImovel").addEventListener("change", e=> atualizarResumoDoImovel(e.target.value));
-  $("#selectLote").addEventListener("change", onChangeLote);
-  $("#btnSalvar").addEventListener("click", salvar);
-  $("#btnLimpar").addEventListener("click", limpar);
+  /* ===== Eventos ===== */
+  document.getElementById("selectImovel").addEventListener("change", e=> atualizarResumoDoImovel(e.target.value));
+  document.getElementById("selectLote").addEventListener("change", onChangeLote);
+  document.getElementById("btnSalvar").addEventListener("click", salvar);
+  document.getElementById("btnLimpar").addEventListener("click", limpar);
 
-  /* Init */
+  /* ===== Init ===== */
   document.addEventListener("DOMContentLoaded", ()=>{
-    if (!ctx.imoveis.length) toast("Nenhum imóvel encontrado. Volte e cadastre o imóvel.", "erro");
+    if(!ctx.imoveis.length){ toast("Nenhum imóvel encontrado. Volte e cadastre o imóvel.", "erro"); }
     preencherSelectImovel();
   });
 </script>
