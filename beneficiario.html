@@ -61,7 +61,7 @@
 
     .help-inline{ color:#607d8b; font-weight:600; }
 
-    /* larguras utilitárias para alinhamento */
+    /* larguras utilitárias */
     .w-160{ max-width:160px; }
     .w-180{ max-width:180px; }
     .w-200{ max-width:200px; }
@@ -86,10 +86,9 @@
 
         <div id="mensagem"></div>
 
-        <!-- Seleção inicial: Imóvel/Lote -->
+        <!-- Seleção inicial: só Imóvel -->
         <div class="form-section">
-          <h5><i class="material-icons">home</i>Seleção do Imóvel e Lote</h5>
-
+          <h5><i class="material-icons">home</i>Seleção do Imóvel</h5>
           <div class="row">
             <div class="form__input w-260">
               <label for="selectImovel">Imóvel (SNCR) *</label>
@@ -97,17 +96,6 @@
                 <option value="" disabled selected>Selecione o imóvel (SNCR)</option>
               </select>
             </div>
-
-            <div class="form__input w-260" id="wrapLote" style="display:none;">
-              <label for="selectLote">Lote para adicionar *</label>
-              <select id="selectLote" class="browser-default">
-                <option value="" disabled selected>Selecione o lote</option>
-              </select>
-            </div>
-          </div>
-
-          <div id="notaLoteUnico" class="static-field" style="display:none; margin-top:6px;">
-            Imóvel não desmembrado: lote único (Total).
           </div>
         </div>
 
@@ -143,17 +131,17 @@
           </div>
         </div>
 
-        <!-- ===== NOVO: Lotes do Beneficiário (Reserva Legal/Condomínio) ===== -->
+        <!-- ===== Lotes do Beneficiário (Reserva Legal/Condomínio) ===== -->
         <div class="form-section">
           <h5><i class="material-icons">view_list</i>Lotes do Beneficiário (Reserva Legal / Condomínio)</h5>
 
           <!-- Form de inclusão de lote -->
           <div class="row">
-            <div class="form__input w-260">
+            <div class="form__input w-320">
               <label for="formLoteSelect">Lote *</label>
               <select id="formLoteSelect" class="browser-default">
                 <option value="" disabled selected>Selecione</option>
-                <!-- opções carregadas via JS (lotes do imóvel selecionado) -->
+                <!-- opções via JS -->
               </select>
             </div>
 
@@ -287,7 +275,13 @@
                 </div>
                 <div class="form__input">
                   <label for="ativPrincipais">Atividades principais</label>
-                  <input type="text" id="ativPrincipais" placeholder="Ex.: Agricultura familiar diversificada">
+                  <select id="ativPrincipais" class="browser-default">
+                    <option value="" disabled selected>Selecione</option>
+                    <option value="Agricultor">Agricultor</option>
+                    <option value="Pecuarista">Pecuarista</option>
+                    <option value="Agricultor e Pecuarista">Agricultor e Pecuarista</option>
+                    <option value="Outros">Outros</option>
+                  </select>
                 </div>
                 <div class="form__input w-220">
                   <label for="areaExplorada">Área explorada do estabelecimento (ha)</label>
@@ -341,34 +335,18 @@
           </div><!-- /exploraWrapper -->
         </div><!-- /Exploração -->
 
-        <!-- G.2) Benefícios sociais e previdenciários -->
+        <!-- G.2) Benefícios sociais e previdenciários (somente tabela/API) -->
         <div class="form-section">
           <h5><i class="material-icons">volunteer_activism</i>G.2) Benefícios sociais e previdenciários</h5>
-
-          <div class="row compact">
-            <div class="form__input">
-              <label for="g2Tipo">Tipo de benefício</label>
-              <input type="text" id="g2Tipo" placeholder="Ex.: Bolsa Família">
-            </div>
-            <div class="form__input w-220">
-              <label for="g2Valor">Valor (R$)</label>
-              <input type="text" id="g2Valor" placeholder="R$ 0,00">
-            </div>
-            <div class="form__input w-180" style="display:flex; align-items:flex-end;">
-              <button id="btnAddG2" class="btn btn-add btn-square" type="button">
-                <i class="material-icons left">add</i>Adicionar
-              </button>
-            </div>
-          </div>
-
           <div class="table-wrapper">
             <table class="striped bordered">
               <thead>
-                <tr><th>Tipo</th><th>Valor (R$)</th><th>Ações</th></tr>
+                <tr><th>Tipo de benefício</th><th>Valor (R$)</th></tr>
               </thead>
               <tbody id="tG2"></tbody>
             </table>
           </div>
+          <small class="help-inline">Dados carregados automaticamente (CadÚnico simulado).</small>
         </div>
 
         <!-- G.3) Demais Rendas -->
@@ -423,12 +401,8 @@
               <label for="enquadramento">Enquadramento PNCF</label>
               <select id="enquadramento" class="browser-default">
                 <option value="" disabled selected>Selecione</option>
-                <option value="PNCF Social" data-max="29117.93">PNCF Social — até R$ 29.117,93</option>
-                <option value="PNCF Jovem" data-max="58235.86">PNCF Jovem — até R$ 58.235,86</option>
-                <option value="PNCF Mais" data-max="58235.86">PNCF Mais — até R$ 58.235,86</option>
-                <option value="PNCF Empreendedor" data-max="314379.46">PNCF Empreendedor — até R$ 314.379,46</option>
               </select>
-              <small class="help-inline">Opções acima da renda calculada ficam desabilitadas.</small>
+              <small class="help-inline">Só aparecem as opções compatíveis com a renda.</small>
             </div>
           </div>
         </div>
@@ -513,7 +487,19 @@
     desmembrado:    localStorage.getItem("imovelDesmembrado") === "true"
   };
 
-  /* ===== Seleção de imóvel/lote (topo) ===== */
+  /* ===== utils hectares ===== */
+  function parseHa(v){
+    if (v==null) return null;
+    const s = String(v).replace(/\./g,"").replace(",",".");
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  function formatHa(n){
+    if (n==null || isNaN(n)) return "—";
+    return String(n).replace(".", ",");
+  }
+
+  /* ===== Seleção de imóvel ===== */
   function preencherSelectImovel(){
     const sel = document.getElementById("selectImovel");
     sel.innerHTML = '<option value="" disabled selected>Selecione o imóvel (SNCR)</option>';
@@ -547,89 +533,99 @@
     document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
     document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
 
-    configurarSelecaoDeLotesTopo(imv);
     carregarFormLoteOptions(imv);
-    atualizarResumoLoteFromSelecionado(); // reseta resumo do lote (pode mostrar lote único)
+    atualizarResumoLoteByForm(); // inicializa resumo
   }
 
-  function configurarSelecaoDeLotesTopo(imv){
-    const wrap = document.getElementById("wrapLote");
-    const notaUnico = document.getElementById("notaLoteUnico");
+  /* ===== Lotes do Beneficiário (form + tabela) ===== */
+  function lotesDoImovelAtual(){
+    const imvIdx = parseInt(document.getElementById("selectImovel").value || "-1", 10);
+    const imv = ctx.imoveis[imvIdx];
+    if (!imv) return {imv:null, lotes:[]};
 
-    if (ctx.desmembrado && ctx.lotes.length){
-      wrap.style.display = "block";
-      notaUnico.style.display = "none";
-    } else {
-      wrap.style.display = "none";
-      notaUnico.style.display = "block";
-
-      // Preenche resumo como total
-      document.getElementById("boxResumoLote").style.display = "block";
-      document.getElementById("lot_denom").textContent  = "Lote Único (Total)";
-      document.getElementById("lot_sigef").textContent  = imv.codigoImovel || "—";
-      document.getElementById("lot_data").textContent   = "—";
-      document.getElementById("lot_resp").textContent   = "—";
-      document.getElementById("lot_rt").textContent     = "—";
-      document.getElementById("lot_status").textContent = imv.status || "—";
-      document.getElementById("lot_area").textContent   = imv.areaHectares || "—";
+    if (!ctx.desmembrado || !ctx.lotes.length){
+      // lote único (total)
+      return {imv, lotes:[{ id:"unico", denom:"Lote Único (Total)", sigef:imv.codigoImovel, areaLoteHa: parseHa(imv.areaHectares) }]};
     }
 
-    // também recarrega o combo do form de inclusão (abaixo)
-    carregarFormLoteOptions(imv);
+    // Filtra por SNCR se existir referência
+    let lotesFiltrados = ctx.lotes;
+    if (ctx.lotes[0]?.sncrRef){
+      lotesFiltrados = ctx.lotes.filter(l => l.sncrRef === imv.parcelaCodigo);
+    }
+
+    // Fallback de área: divide área total pelo nº de lotes quando faltar áreaLoteHa
+    const totalHa = parseHa(imv.areaHectares);
+    const n = lotesFiltrados.length || 1;
+    const defCada = (totalHa!=null && n>0) ? (totalHa/n) : null;
+
+    return {
+      imv,
+      lotes: lotesFiltrados.map(l => ({
+        ...l,
+        id: l.id || l.sigef,
+        areaLoteHa: (l.areaLoteHa!=null ? parseHa(l.areaLoteHa) : defCada)
+      }))
+    };
   }
 
   function carregarFormLoteOptions(imv){
     const sel = document.getElementById("formLoteSelect");
     sel.innerHTML = '<option value="" disabled selected>Selecione</option>';
 
-    if (ctx.desmembrado && ctx.lotes.length){
-      ctx.lotes.forEach((l, i)=>{
-        const opt = document.createElement("option");
-        const id = l.id || l.sigef || String(i);
-        opt.value = String(id);
-        opt.textContent = `${l.denom || 'Lote'} — ${l.sigef || ''} — ${l.areaLoteHa ?? '—'} ha`;
-        sel.appendChild(opt);
-      });
-    } else {
-      // lote único
+    const pack = lotesDoImovelAtual();
+    pack.lotes.forEach((l, i)=>{
       const opt = document.createElement("option");
-      opt.value = "unico";
-      opt.textContent = `Lote Único — ${imv.codigoImovel || ''} — ${imv.areaHectares ?? '—'} ha`;
+      const id = l.id || String(i);
+      opt.value = String(id);
+      opt.textContent = `${l.denom || 'Lote'} — ${l.sigef || ''} — ${formatHa(l.areaLoteHa)} ha`;
       sel.appendChild(opt);
-    }
+    });
 
-    // define área padrão no form
+    // escolhe o primeiro disponível por padrão
+    if (pack.lotes.length){
+      sel.value = String(pack.lotes[0].id || "unico");
+    }
     setAreaPadraoNoForm();
   }
 
-  document.getElementById("selectLote").addEventListener("change", ()=>{
-    atualizarResumoLoteFromSelecionado();
+  function setAreaPadraoNoForm(){
+    const pack = lotesDoImovelAtual();
+    const id = document.getElementById("formLoteSelect").value;
+    const lot = pack.lotes.find(l => String(l.id) === String(id));
+    const areaPadrao = lot ? lot.areaLoteHa : null;
+
+    const cond = document.querySelector('input[name="condominio"]:checked')?.value === "sim";
+    const areaInput = document.getElementById("formAreaAdquirida");
+
+    if (cond){
+      areaInput.readOnly = false;
+      areaInput.value = (areaPadrao!=null) ? String(areaPadrao).replace(".", ",") : "";
+    } else {
+      areaInput.readOnly = true;
+      areaInput.value = (areaPadrao!=null) ? String(areaPadrao).replace(".", ",") : "";
+    }
+    atualizarResumoLoteByForm();
+  }
+
+  document.getElementById("formLoteSelect").addEventListener("change", setAreaPadraoNoForm);
+  Array.from(document.querySelectorAll('input[name="condominio"]')).forEach(r=>{
+    r.addEventListener("change", setAreaPadraoNoForm);
   });
 
-  function atualizarResumoLoteFromSelecionado(){
-    const sel = document.getElementById("selectLote");
-    const id = sel.value;
-    const imvIdx = parseInt(document.getElementById("selectImovel").value || "-1", 10);
-    const imv = ctx.imoveis[imvIdx];
+  function atualizarResumoLoteByForm(){
+    const pack = lotesDoImovelAtual();
+    const id = document.getElementById("formLoteSelect").value;
+    const lot = pack.lotes.find(l => String(l.id) === String(id));
 
-    if (!imv){ return; }
-
-    if (!ctx.desmembrado){
-      // já preenchido em configurarSelecaoDeLotesTopo
-      document.getElementById("boxResumoLote").style.display = "block";
-      // tenta ver se foi incluído na tabela e então usa a área adquirida dela
-      const match = benefLotes.find(x => x.loteId === "unico");
-      if (match){
-        document.getElementById("lot_area").textContent = match.areaAdquiridaHa.toString();
-      } else {
-        document.getElementById("lot_area").textContent = imv.areaHectares || "—";
-      }
+    if (!lot){
+      document.getElementById("boxResumoLote").style.display = "none";
       return;
     }
 
-    // desmembrado
-    const lot = ctx.lotes.find(l => String(l.id || l.sigef) === id);
-    if (!lot) { document.getElementById("boxResumoLote").style.display = "none"; return; }
+    // Se já existe na tabela, mostra a área adquirida da tabela
+    const match = benefLotes.find(x => x.loteId === String(lot.id));
+    const areaMostrar = match ? match.areaAdquiridaHa : lot.areaLoteHa;
 
     document.getElementById("boxResumoLote").style.display = "block";
     document.getElementById("lot_denom").textContent  = lot.denom || "—";
@@ -638,16 +634,10 @@
     document.getElementById("lot_resp").textContent   = lot.responsavel || "—";
     document.getElementById("lot_rt").textContent     = lot.docRT || "—";
     document.getElementById("lot_status").textContent = lot.status || "—";
-
-    // área a ser adquirida (somente leitura) – usa a da tabela se já existir
-    const match = benefLotes.find(x => x.loteId === String(lot.id || lot.sigef));
-    const areaMostrar = match ? match.areaAdquiridaHa : (lot.areaLoteHa ?? null);
-    document.getElementById("lot_area").textContent = (areaMostrar != null) ? String(areaMostrar) : "—";
+    document.getElementById("lot_area").textContent   = (areaMostrar!=null) ? String(areaMostrar).replace(".", ",") : "—";
   }
 
-  /* ===== Lotes do Beneficiário (tabela) ===== */
   let benefLotes = getJSON("beneficiario_lotes_escolhidos", []); // [{loteId, denom, sigef, areaPadraoHa, condominio, areaAdquiridaHa}]
-
   function renderBenefLotes(){
     const tb = document.getElementById("tBenefLotes");
     tb.innerHTML = "";
@@ -656,9 +646,9 @@
       tr.innerHTML = `
         <td>${r.denom || (r.loteId==="unico" ? "Lote Único (Total)" : "Lote")}</td>
         <td>${r.sigef || "—"}</td>
-        <td>${(r.areaPadraoHa!=null)? r.areaPadraoHa : "—"}</td>
+        <td>${(r.areaPadraoHa!=null)? String(r.areaPadraoHa).replace(".", ",") : "—"}</td>
         <td>${r.condominio ? "Sim" : "Não"}</td>
-        <td>${(r.areaAdquiridaHa!=null)? r.areaAdquiridaHa : "—"}</td>
+        <td>${(r.areaAdquiridaHa!=null)? String(r.areaAdquiridaHa).replace(".", ",") : "—"}</td>
         <td>
           <button class="action-btn" title="Editar" onclick="editBenefLote(${i})"><i class="material-icons">edit</i></button>
           <button class="action-btn" title="Excluir" onclick="delBenefLote(${i})"><i class="material-icons">delete</i></button>
@@ -668,67 +658,17 @@
     });
   }
 
-  function setAreaPadraoNoForm(){
-    const imvIdx = parseInt(document.getElementById("selectImovel").value || "-1", 10);
-    const imv = ctx.imoveis[imvIdx];
-    const select = document.getElementById("formLoteSelect");
-    const id = select.value;
-
-    let areaPadrao = null;
-    if (!id){
-      // sem escolha ainda → tenta default
-      if (!ctx.desmembrado) areaPadrao = imv?.areaHectares ?? null;
-    } else {
-      if (id === "unico") areaPadrao = imv?.areaHectares ?? null;
-      else {
-        const lot = ctx.lotes.find(l => String(l.id || l.sigef) === id);
-        areaPadrao = (lot && lot.areaLoteHa!=null) ? lot.areaLoteHa : null;
-      }
-    }
-
-    const cond = document.querySelector('input[name="condominio"]:checked')?.value === "sim";
-    const areaInput = document.getElementById("formAreaAdquirida");
-
-    if (cond){
-      areaInput.readOnly = false;
-      areaInput.value = areaPadrao!=null ? String(areaPadrao) : "";
-    } else {
-      areaInput.readOnly = true;
-      areaInput.value = areaPadrao!=null ? String(areaPadrao) : "";
-    }
-  }
-
-  document.getElementById("formLoteSelect").addEventListener("change", setAreaPadraoNoForm);
-  Array.from(document.querySelectorAll('input[name="condominio"]')).forEach(r=>{
-    r.addEventListener("change", setAreaPadraoNoForm);
-  });
-
   function addBenefLote(){
-    const imvIdx = parseInt(document.getElementById("selectImovel").value || "-1", 10);
-    if (isNaN(imvIdx) || !ctx.imoveis[imvIdx]){ toast("Selecione o imóvel (SNCR).", "erro"); return; }
-
+    const pack = lotesDoImovelAtual();
     const id = document.getElementById("formLoteSelect").value;
     if (!id){ toast("Selecione o lote para adicionar.", "erro"); return; }
 
-    let denom = "Lote";
-    let sigef = "";
-    let areaPadrao = null;
-
-    if (id === "unico"){
-      const imv = ctx.imoveis[imvIdx];
-      denom = "Lote Único (Total)";
-      sigef = imv?.codigoImovel || "";
-      areaPadrao = imv?.areaHectares!=null ? parseFloat(String(imv.areaHectares).replace(",", ".")) : null;
-    } else {
-      const lot = ctx.lotes.find(l => String(l.id || l.sigef) === id);
-      denom = lot?.denom || "Lote";
-      sigef = lot?.sigef || "";
-      areaPadrao = (lot && lot.areaLoteHa!=null) ? parseFloat(String(lot.areaLoteHa).replace(",", ".")) : null;
-    }
+    const lot = pack.lotes.find(l => String(l.id) === String(id));
+    if (!lot){ toast("Lote inválido.", "erro"); return; }
 
     const cond = document.querySelector('input[name="condominio"]:checked')?.value === "sim";
     const areaTxt = (document.getElementById("formAreaAdquirida").value || "").replace(",", ".");
-    let areaAdq = areaPadrao;
+    let areaAdq = lot.areaLoteHa;
 
     if (cond){
       const f = parseFloat(areaTxt);
@@ -736,15 +676,17 @@
       areaAdq = f;
     }
 
-    // se já existe, atualiza
-    const iExist = benefLotes.findIndex(x => x.loteId === id);
-    const novo = { loteId:id, denom, sigef, areaPadraoHa:areaPadrao, condominio:cond, areaAdquiridaHa:areaAdq };
-    if (iExist >= 0){ benefLotes[iExist] = novo; }
-    else { benefLotes.push(novo); }
+    const novo = {
+      loteId:String(lot.id), denom:lot.denom || "Lote", sigef:lot.sigef || "",
+      areaPadraoHa: lot.areaLoteHa, condominio:cond, areaAdquiridaHa:areaAdq
+    };
+
+    const iExist = benefLotes.findIndex(x => x.loteId === String(lot.id));
+    if (iExist >= 0) benefLotes[iExist] = novo; else benefLotes.push(novo);
 
     setJSON("beneficiario_lotes_escolhidos", benefLotes);
     renderBenefLotes();
-    atualizarResumoLoteFromSelecionado();
+    atualizarResumoLoteByForm();
     toast("Lote incluído/atualizado para o beneficiário.");
   }
 
@@ -753,12 +695,11 @@
   function editBenefLote(i){
     const r = benefLotes[i];
     if (!r) return;
-
-    // joga para o form
     document.getElementById("formLoteSelect").value = r.loteId;
     document.querySelector(`input[name="condominio"][value="${r.condominio?'sim':'nao'}"]`).checked = true;
     document.getElementById("formAreaAdquirida").readOnly = !r.condominio;
-    document.getElementById("formAreaAdquirida").value = (r.areaAdquiridaHa!=null) ? String(r.areaAdquiridaHa) : "";
+    document.getElementById("formAreaAdquirida").value = (r.areaAdquiridaHa!=null) ? String(r.areaAdquiridaHa).replace(".", ",") : "";
+    atualizarResumoLoteByForm();
     toast("Edição carregada no formulário acima.");
   }
 
@@ -766,7 +707,7 @@
     benefLotes.splice(i,1);
     setJSON("beneficiario_lotes_escolhidos", benefLotes);
     renderBenefLotes();
-    atualizarResumoLoteFromSelecionado();
+    atualizarResumoLoteByForm();
   }
 
   /* ===== Exploração Rural (mostrar/ocultar) ===== */
@@ -801,7 +742,7 @@
       document.getElementById("nomeProprietario").value = "José da Silva";
       document.getElementById("docProprietario").value  = "111.111.111-11";
       document.getElementById("condicaoPosse").value = "Proprietário";
-      document.getElementById("ativPrincipais").value = "Agricultura familiar (mandioca, milho) e criação de aves";
+      document.getElementById("ativPrincipais").value = "Agricultor";
       document.getElementById("areaExplorada").value = "8,00";
     }
   });
@@ -832,13 +773,9 @@
   }
   function renderG2(){
     tG2.innerHTML = "";
-    g2.forEach((r, i)=>{
+    g2.forEach((r)=>{
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.tipo}</td>
-        <td>${formatBRLFromDigits(String(Math.round(r.valor*100))).replace("R$ ","")}</td>
-        <td><button class="action-btn" onclick="delG2(${i})" title="Excluir"><i class="material-icons">delete</i></button></td>
-      `;
+      tr.innerHTML = `<td>${r.tipo}</td><td>${formatBRLFromDigits(String(Math.round(r.valor*100))).replace("R$ ","")}</td>`;
       tG2.appendChild(tr);
     });
     atualizarTotaisEEnquadramento();
@@ -858,12 +795,10 @@
   }
 
   function delG1(i){ g1.splice(i,1); renderG1(); }
-  function delG2(i){ g2.splice(i,1); renderG2(); }
   function delG3(i){ g3.splice(i,1); renderG3(); }
 
   attachBRLMask(document.getElementById("g1Receita"));
   attachBRLMask(document.getElementById("g1Despesa"));
-  attachBRLMask(document.getElementById("g2Valor"));
   attachBRLMask(document.getElementById("g3Valor"));
 
   document.getElementById("btnAddG1").addEventListener("click", ()=>{
@@ -879,16 +814,6 @@
     document.getElementById("g1Despesa").value = "R$ 0,00";
   });
 
-  document.getElementById("btnAddG2").addEventListener("click", ()=>{
-    const tipo = (document.getElementById("g2Tipo").value || "").trim();
-    const val  = parseBRL(document.getElementById("g2Valor").value);
-    if (!tipo){ toast("Informe o tipo do benefício (G.2).", "erro"); return; }
-    g2.push({tipo, valor:val});
-    renderG2();
-    document.getElementById("g2Tipo").value = "";
-    document.getElementById("g2Valor").value = "R$ 0,00";
-  });
-
   document.getElementById("btnAddG3").addEventListener("click", ()=>{
     const tipo = document.getElementById("g3Tipo").value;
     const val  = parseBRL(document.getElementById("g3Valor").value);
@@ -899,6 +824,28 @@
     document.getElementById("g3Valor").value = "R$ 0,00";
   });
 
+  /* ===== Enquadramento dinâmico (só opções compatíveis) ===== */
+  const ENQ = [
+    {v:"PNCF Social", max:29117.93, label:"PNCF Social — até R$ 29.117,93"},
+    {v:"PNCF Jovem",  max:58235.86, label:"PNCF Jovem — até R$ 58.235,86"},
+    {v:"PNCF Mais",   max:58235.86, label:"PNCF Mais — até R$ 58.235,86"},
+    {v:"PNCF Empreendedor", max:314379.46, label:"PNCF Empreendedor — até R$ 314.379,46"}
+  ];
+  function atualizarEnquadramentoOptions(total){
+    const sel = document.getElementById("enquadramento");
+    const atual = sel.value;
+    sel.innerHTML = '<option value="" disabled selected>Selecione</option>';
+    ENQ.filter(e => total <= e.max).forEach(e=>{
+      const op = document.createElement("option");
+      op.value = e.v; op.textContent = e.label;
+      sel.appendChild(op);
+    });
+    // Restaura seleção se ainda for válida
+    if (atual && ENQ.find(e=> e.v===atual && total <= e.max)){
+      sel.value = atual;
+    }
+  }
+
   function atualizarTotaisEEnquadramento(){
     const somaG1 = g1.reduce((acc, r)=> acc + (r.renda||0), 0);
     const somaG2 = g2.reduce((acc, r)=> acc + (r.valor||0), 0);
@@ -906,17 +853,7 @@
     const total = somaG1 + somaG2 + somaG3;
 
     document.getElementById("rendaTotal").textContent = formatBRLFromDigits(String(Math.round(total*100)));
-
-    const sel = document.getElementById("enquadramento");
-    Array.from(sel.options).forEach((op, idx)=>{
-      if (!idx) return;
-      const lim = parseFloat(op.dataset.max || "0");
-      op.disabled = total > lim;
-    });
-    if (sel.value){
-      const cur = sel.selectedOptions[0];
-      if (cur && cur.disabled){ sel.value = ""; }
-    }
+    atualizarEnquadramentoOptions(total);
   }
 
   /* ===== Salvar / Limpar / Navegar ===== */
@@ -973,23 +910,26 @@
     benefLotes = [];
     renderBenefLotes();
 
-    // limpa G2 default será recolocado no init
+    // limpa G2 (será recriado no init)
     g1 = []; g2 = []; g3 = [];
     renderG1(); renderG2(); renderG3();
     document.getElementById("rendaTotal").textContent = "R$ 0,00";
+    atualizarEnquadramentoOptions(0);
     document.getElementById("enquadramento").value = "";
     document.getElementById("agenteFinanceiro").value = "";
 
     // exploração
     document.querySelector('input[name="explora"][value="nao"]').checked = true;
     setExploraVisible(false);
-    ["ccir","denomEstab","localEstab","areaEstab","nomeProprietario","docProprietario","ativPrincipais","areaExplorada"].forEach(id=>{
+    ["ccir","denomEstab","localEstab","areaEstab","nomeProprietario","docProprietario"].forEach(id=>{
       const el = document.getElementById(id); if (el) el.value = "";
     });
     const cp = document.getElementById("condicaoPosse"); if (cp) cp.value = "";
+    const ap = document.getElementById("ativPrincipais"); if (ap) ap.value = "";
+    const ae = document.getElementById("areaExplorada"); if (ae) ae.value = "";
     const ppNao = document.querySelector('input[name="propPrin"][value="nao"]'); if (ppNao) ppNao.checked = true;
 
-    // formulários de lote
+    // formulário de lote
     document.getElementById("formLoteSelect").value = "";
     document.querySelector('input[name="condominio"][value="nao"]').checked = true;
     document.getElementById("formAreaAdquirida").readOnly = true;
@@ -1011,17 +951,7 @@
     }
   });
 
-  // topo selects
   document.getElementById("selectImovel").addEventListener("change", (e)=> atualizarResumoDoImovel(e.target.value));
-  document.getElementById("selectLote").addEventListener("change", ()=>{
-    atualizarResumoLoteFromSelecionado();
-    // sincroniza seleção no formulário de inclusão
-    const lotId = document.getElementById("selectLote").value;
-    if (lotId){
-      document.getElementById("formLoteSelect").value = lotId;
-      setAreaPadraoNoForm();
-    }
-  });
 
   /* ===== Init ===== */
   document.addEventListener("DOMContentLoaded", ()=>{
