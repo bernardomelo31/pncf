@@ -231,7 +231,7 @@ input[type="email"]{ line-height:normal !important; }
             </div>
             <div class="form__input col s12 m3">
               <label for="loteArea">Área a adquirir (ha)</label>
-              <input type="text" id="loteArea" placeholder="0,0000" />
+              <input type="text" id="loteArea" readonly />
             </div>
             <div class="form__input col s12 m3">
               <label for="loteData">Data da entrada</label>
@@ -379,7 +379,6 @@ input[type="email"]{ line-height:normal !important; }
               <label for="tipoAnexoImovel">Tipo de Documento</label>
               <select id="tipoAnexoImovel" class="browser-default">
                 <option value="" disabled selected>Selecione o documento</option>
-                <!-- opções são preenchidas via JS -->
               </select>
             </div>
 
@@ -402,7 +401,6 @@ input[type="email"]{ line-height:normal !important; }
               <small id="modoEdicaoAnexoImovel" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
 
-            <!-- Banner de avisos/observações -->
             <div id="alertDocInfo" class="alert-inline"></div>
           </div>
         </form>
@@ -429,7 +427,6 @@ input[type="email"]{ line-height:normal !important; }
               <label for="tipoAnexoVendedor">Tipo de Documento</label>
               <select id="tipoAnexoVendedor" class="browser-default">
                 <option value="" disabled selected>Selecione o documento</option>
-                <!-- opções preenchidas via JS -->
               </select>
             </div>
 
@@ -452,7 +449,6 @@ input[type="email"]{ line-height:normal !important; }
               <small id="modoEdicaoAnexoVendedor" class="modo-edicao">✎ MODO EDIÇÃO</small>
             </div>
 
-            <!-- Banner de recomendações -->
             <div id="alertVendedorInfo" class="alert-inline"></div>
           </div>
         </form>
@@ -523,7 +519,7 @@ input[type="email"]{ line-height:normal !important; }
           Laudo de Avaliação
         </h5>
 
-        <div class="row" style="margin-bottom:0;">
+        <div class="row" style="margin-bottom:0%;">
           <div class="form__input col s12 m5">
             <label style="display:flex; align-items:center; gap:6px;">
               <span>Tipo de Laudo (definido automaticamente)</span>
@@ -532,22 +528,13 @@ input[type="email"]{ line-height:normal !important; }
             </label>
 
             <p style="margin-top:8px;">
-              <label>
-                <input class="with-gap" name="tipoLaudo" type="radio" value="supersimples" disabled />
-                <span>Laudo Super Simples</span>
-              </label>
+              <label><input class="with-gap" name="tipoLaudo" type="radio" value="supersimples" disabled /><span>Laudo Super Simples</span></label>
             </p>
             <p>
-              <label>
-                <input class="with-gap" name="tipoLaudo" type="radio" value="simplificado" disabled />
-                <span>Laudo Simplificado</span>
-              </label>
+              <label><input class="with-gap" name="tipoLaudo" type="radio" value="simplificado" disabled /><span>Laudo Simplificado</span></label>
             </p>
             <p>
-              <label>
-                <input class="with-gap" name="tipoLaudo" type="radio" value="completo" disabled />
-                <span>Laudo Completo</span>
-              </label>
+              <label><input class="with-gap" name="tipoLaudo" type="radio" value="completo" disabled /><span>Laudo Completo</span></label>
             </p>
           </div>
 
@@ -591,16 +578,38 @@ input[type="email"]{ line-height:normal !important; }
   const TIPO_LAUDO_KEY = "tipoLaudo";
   const LIM_45MI = 4500000;
 
-  /* Banco fictício (imóvel) */
+  /* Util */
+  function mostrarMensagem(texto, tipo="sucesso") {
+    const msgBox = document.getElementById("mensagem");
+    msgBox.innerText = texto;
+    msgBox.className = tipo === "erro" ? "msg-erro" : "msg-sucesso";
+    msgBox.style.display = "block";
+    setTimeout(() => { msgBox.style.display = "none"; }, 4000);
+  }
+  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
+  function parseHa(str){ // "25,0000" -> 25
+    if(!str) return 0;
+    return parseFloat(str.replace(/\./g,'').replace(',','.')) || 0;
+  }
+  function formatHa(num){ // 25 -> "25,0000"
+    return (Number(num)||0).toFixed(4).replace('.',',');
+  }
+
+  /* ===== Banco fictício (imóvel com 50 ha) ===== */
   const bancoFicticioImovel = {
     "111.111.111.111-1": {
-      codigoImovel: "797733f2-8a47-4c41-9fe6-52f661a4463e", status: "CERTIFICADA",
-      areaHectares: "261,01", nomeArea: "VENEZA - DATA CAJAZEIRAS", registroCns: "07.830-3",
-      registroMatricula: "12685", municipio: "UNIÃO", uf: "PE"
+      codigoImovel: "797733f2-8a47-4c41-9fe6-52f661a4463e",
+      status: "CERTIFICADA",
+      areaHectares: "50,0000",                  // <<< 50 hectares
+      nomeArea: "VENEZA - DATA CAJAZEIRAS",
+      registroCns: "07.830-3",
+      registroMatricula: "12685",
+      municipio: "UNIÃO",
+      uf: "PE"
     }
   };
 
-  /* Catálogo oficial de Anexos do Imóvel (1–17) */
+  /* Catálogo oficial de Anexos (imóvel e vendedor) */
   const ANEXOS_IMOVEL_CATALOGO = [
     {codigo:1, label:"Matrícula ou Certidão de Registro no Cartório de Registro de Imóveis."},
     {codigo:2, label:"Certidão Vintenária ou Cadeia Dominial."},
@@ -620,8 +629,6 @@ input[type="email"]{ line-height:normal !important; }
     {codigo:16,label:"(ART) ou (TRT) das peças técnicas apresentadas (memoriais e plantas)."},
     {codigo:17,label:"Declaração de não interesse do INCRA ou Declaração da empresa de ATER."}
   ];
-
-  /* Catálogo oficial de Anexos do Vendedor (1–7) */
   const ANEXOS_VENDEDOR_CATALOGO = [
     {codigo:1, label:"Declaração de intenção de venda do vendedor."},
     {codigo:2, label:"Documento oficial de identificação (vendedor e cônjuge)."},
@@ -650,17 +657,6 @@ input[type="email"]{ line-height:normal !important; }
       uf: "PE", municipio: "Recife", bairro: "Boa Vista", endereco: "Rua das Flores, 123"
     }
   };
-
-  function mostrarMensagem(texto, tipo="sucesso") {
-    const msgBox = document.getElementById("mensagem");
-    msgBox.innerText = texto;
-    msgBox.className = tipo === "erro" ? "msg-erro" : "msg-sucesso";
-    msgBox.style.display = "block";
-    setTimeout(() => { msgBox.style.display = "none"; }, 4000);
-  }
-
-  /* ===== Util ===== */
-  function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 
   /* ===== SNCR ===== */
   const sncrInput = document.getElementById("parcelaCodigo");
@@ -753,30 +749,23 @@ input[type="email"]{ line-height:normal !important; }
     r.addEventListener('change', (e)=> setLotesVisible(e.target.value === 'sim'));
   });
 
+  // Preenchimento automático dos dados dos lotes (25 ha cada, readonly)
   selDenom.addEventListener('change', ()=>{
     const DATA_ENTRADA_FIXA = "17/12/2024";
     const RESPONSAVEL_TECNICO = "Ricardo Aguiar de Oliveira";
     const DOC_RT = "BR20241205829 - GO";
     const bancoFicticioLotes = {
-      "Lote 1": { sigef:"7b6b25d0-aea7-41fdd-8105-6605e70b82fa", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" },
-      "Lote 2": { sigef:"0f4b90c3-1f4a-4a42-9b9c-3b47d3c8e6ad", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" }
+      "Lote 1": { sigef:"7b6b25d0-aea7-41fdd-8105-6605e70b82fa", area:"25,0000", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" },
+      "Lote 2": { sigef:"0f4b90c3-1f4a-4a42-9b9c-3b47d3c8e6ad", area:"25,0000", dataEntrada:DATA_ENTRADA_FIXA, responsavel:RESPONSAVEL_TECNICO, docRT:DOC_RT, status:"CERTIFICADA" }
     };
     const d = bancoFicticioLotes[selDenom.value] || {};
     document.getElementById('loteSigef').value = d.sigef || "";
+    document.getElementById('loteArea').value = d.area || ""; // readonly
     document.getElementById('loteData').value = d.dataEntrada || DATA_ENTRADA_FIXA;
     document.getElementById('loteResp').value = d.responsavel || RESPONSAVEL_TECNICO;
     document.getElementById('loteDocRT').value = d.docRT || DOC_RT;
     document.getElementById('loteStatus').value = d.status || "CERTIFICADA";
   });
-
-  /* Máscara para hectares (até 4 casas decimais) */
-  function maskHa(e){
-    let v = e.target.value.replace(/[^\d,]/g,'');
-    const parts = v.split(',');
-    if (parts.length > 1) v = parts[0] + ',' + parts.slice(1).join('').slice(0,4);
-    e.target.value = v;
-  }
-  document.getElementById('loteArea').addEventListener('input', maskHa);
 
   function salvarLote(){
     const DATA_ENTRADA_FIXA = "17/12/2024";
@@ -786,13 +775,13 @@ input[type="email"]{ line-height:normal !important; }
     const denom = selDenom.value;
     if(!denom){ mostrarMensagem("Selecione a denominação do lote.", "erro"); return; }
 
-    const areaHa = (document.getElementById('loteArea').value || '').trim();
-    if(!areaHa){ mostrarMensagem("Informe a área a adquirir (ha).", "erro"); return; }
+    const areaHa = (document.getElementById('loteArea').value || '').trim(); // preenchido automático
+    if(!areaHa){ mostrarMensagem("Área a adquirir (ha) não identificada para o lote selecionado.", "erro"); return; }
 
     const novo = {
       denom,
       sigef: document.getElementById('loteSigef').value,
-      areaHa, // <<<<<<<< salva a área
+      areaHa, // automático e readonly
       dataEntrada: document.getElementById('loteData').value || DATA_ENTRADA_FIXA,
       responsavel: document.getElementById('loteResp').value || RESPONSAVEL_TECNICO,
       docRT: document.getElementById('loteDocRT').value || DOC_RT,
@@ -946,9 +935,7 @@ input[type="email"]{ line-height:normal !important; }
     });
   }
 
-  /* ===== Anexos (arquivos) ===== */
-
-  // --- IMÓVEL ---
+  /* ===== Anexos (ordenados) ===== */
   function popularCatalogoAnexosImovel(){
     const select = document.getElementById('tipoAnexoImovel');
     select.innerHTML = '<option value="" disabled selected>Selecione o documento</option>';
@@ -959,36 +946,19 @@ input[type="email"]{ line-height:normal !important; }
       select.appendChild(opt);
     });
   }
-
   const selectTipoImovel = document.getElementById('tipoAnexoImovel');
   const alertDocInfo = document.getElementById('alertDocInfo');
-
-  // Placeholder “Recomendação:” — textos específicos podem ser adicionados depois
-  const RECOMENDACOES_IMOVEL = {
-    1:"", 2:"", 3:"", 4:"", 5:"", 6:"", 7:"", 8:"",
-    9:"", 10:"", 11:"", 12:"", 13:"", 14:"", 15:"", 16:"", 17:""
-  };
-
+  const RECOMENDACOES_IMOVEL = {1:"",2:"",3:"",4:"",5:"",6:"",7:"",8:"",9:"",10:"",11:"",12:"",13:"",14:"",15:"",16:"",17:""};
   function showImovelRecommendation(codeStr){
-    if (!codeStr){
-      alertDocInfo.style.display = 'none';
-      alertDocInfo.innerHTML = '';
-      return;
-    }
-    const cod = parseInt(codeStr, 10);
-    const extra = RECOMENDACOES_IMOVEL[cod] || "";
+    if (!codeStr){ alertDocInfo.style.display='none'; alertDocInfo.innerHTML=''; return; }
+    const cod = parseInt(codeStr,10); const extra = RECOMENDACOES_IMOVEL[cod] || "";
     alertDocInfo.innerHTML = `<i class="material-icons">info</i>Recomendação: ${extra}`;
     alertDocInfo.style.display = 'block';
   }
-
-  selectTipoImovel.addEventListener('change', (e)=>{
-    showImovelRecommendation(e.target.value);
-  });
-
+  selectTipoImovel.addEventListener('change', (e)=> showImovelRecommendation(e.target.value));
   document.getElementById('arquivoImovel').addEventListener('change', (e)=>{
     document.getElementById('nomeArquivoImovel').value = e.target.files?.[0]?.name || '';
   });
-
   function ordenarAnexosImovel(){
     anexosImovel.sort((a,b)=>{
       const ca = (typeof a.codigo === 'number') ? a.codigo : 999;
@@ -996,7 +966,6 @@ input[type="email"]{ line-height:normal !important; }
       return ca - cb;
     });
   }
-
   function migrarAnexosImovelSeNecessario(){
     let mudou = false;
     anexosImovel = anexosImovel.map(item=>{
@@ -1004,19 +973,11 @@ input[type="email"]{ line-height:normal !important; }
       const label = item?.documento || item?.label || '';
       const found = ANEXOS_IMOVEL_CATALOGO.find(c => label && label.toLowerCase().includes(c.label.split(' - ')[0].toLowerCase().slice(0,20)));
       mudou = true;
-      return {
-        codigo: found ? found.codigo : 999,
-        label: found ? found.label : (label || 'Documento'),
-        arquivo: item?.arquivo || ''
-      };
+      return { codigo: found ? found.codigo : 999, label: found ? found.label : (label || 'Documento'), arquivo: item?.arquivo || '' };
     });
-    if (mudou){
-      ordenarAnexosImovel();
-      localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
-    }
+    if (mudou){ ordenarAnexosImovel(); localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel)); }
   }
 
-  // --- VENDEDOR ---
   function popularCatalogoAnexosVendedor(){
     const select = document.getElementById('tipoAnexoVendedor');
     select.innerHTML = '<option value="" disabled selected>Selecione o documento</option>';
@@ -1027,25 +988,17 @@ input[type="email"]{ line-height:normal !important; }
       select.appendChild(opt);
     });
   }
-
   const selectTipoVendedor = document.getElementById('tipoAnexoVendedor');
   const alertVendedorInfo = document.getElementById('alertVendedorInfo');
   selectTipoVendedor.addEventListener('change', (e)=>{
     const cod = parseInt(e.target.value || '0', 10);
     const rec = RECOMENDACOES_VENDEDOR[cod];
-    if (rec){
-      alertVendedorInfo.innerHTML = `<i class="material-icons">info</i>${rec}`;
-      alertVendedorInfo.style.display = 'block';
-    } else {
-      alertVendedorInfo.style.display = 'none';
-      alertVendedorInfo.innerHTML = '';
-    }
+    if (rec){ alertVendedorInfo.innerHTML = `<i class="material-icons">info</i>${rec}`; alertVendedorInfo.style.display='block'; }
+    else { alertVendedorInfo.style.display='none'; alertVendedorInfo.innerHTML=''; }
   });
-
   document.getElementById('arquivoVendedor').addEventListener('change', (e)=>{
     document.getElementById('nomeArquivoVendedor').value = e.target.files?.[0]?.name || '';
   });
-
   function ordenarAnexosVendedor(){
     anexosVendedor.sort((a,b)=>{
       const ca = (typeof a.codigo === 'number') ? a.codigo : 999;
@@ -1053,7 +1006,6 @@ input[type="email"]{ line-height:normal !important; }
       return ca - cb;
     });
   }
-
   function migrarAnexosVendedorSeNecessario(){
     let mudou = false;
     anexosVendedor = anexosVendedor.map(item=>{
@@ -1061,19 +1013,11 @@ input[type="email"]{ line-height:normal !important; }
       const label = item?.documento || item?.label || '';
       const found = ANEXOS_VENDEDOR_CATALOGO.find(c => label && label.toLowerCase().includes(c.label.toLowerCase().slice(0,20)));
       mudou = true;
-      return {
-        codigo: found ? found.codigo : 999,
-        label: found ? found.label : (label || 'Documento'),
-        arquivo: item?.arquivo || ''
-      };
+      return { codigo: found ? found.codigo : 999, label: found ? found.label : (label || 'Documento'), arquivo: item?.arquivo || '' };
     });
-    if (mudou){
-      ordenarAnexosVendedor();
-      localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
-    }
+    if (mudou){ ordenarAnexosVendedor(); localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor)); }
   }
 
-  /* Salvar/atualizar anexos */
   function salvarOuAtualizarAnexo(tipo) {
     const select = document.getElementById('tipoAnexo' + capitalize(tipo));
     const inputFile = document.getElementById('arquivo' + capitalize(tipo));
@@ -1086,21 +1030,15 @@ input[type="email"]{ line-height:normal !important; }
       const novo = { codigo, label: info?.label || select.options[select.selectedIndex].text, arquivo: inputFile.files[0].name };
 
       const idxEdit = editandoAnexo.imovel;
-      if (idxEdit === null) {
-        anexosImovel.push(novo);
-        ordenarAnexosImovel();
-        mostrarMensagem("Anexo do imóvel adicionado e listado em ordem!");
-      } else {
-        anexosImovel[idxEdit] = novo;
-        editandoAnexo.imovel = null;
+      if (idxEdit === null) { anexosImovel.push(novo); ordenarAnexosImovel(); mostrarMensagem("Anexo do imóvel adicionado e listado em ordem!"); }
+      else {
+        anexosImovel[idxEdit] = novo; editandoAnexo.imovel = null;
         document.getElementById('btnAddUpdImovel').innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
         document.getElementById('modoEdicaoAnexoImovel').style.display = 'none';
-        ordenarAnexosImovel();
-        mostrarMensagem("Anexo do imóvel atualizado e reposicionado!");
+        ordenarAnexosImovel(); mostrarMensagem("Anexo do imóvel atualizado e reposicionado!");
       }
       localStorage.setItem("anexosImovel", JSON.stringify(anexosImovel));
       renderTabelaAnexos('imovel');
-
       select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
       alertDocInfo.style.display = "none"; alertDocInfo.innerHTML = "";
       return;
@@ -1113,22 +1051,15 @@ input[type="email"]{ line-height:normal !important; }
       const novo = { codigo, label: info?.label || select.options[select.selectedIndex].text, arquivo: inputFile.files[0].name };
 
       const idxEdit = editandoAnexo.vendedor;
-      if (idxEdit === null) {
-        anexosVendedor.push(novo);
-        ordenarAnexosVendedor();
-        mostrarMensagem("Anexo do vendedor adicionado e listado em ordem!");
-      } else {
-        anexosVendedor[idxEdit] = novo;
-        editandoAnexo.vendedor = null;
+      if (idxEdit === null) { anexosVendedor.push(novo); ordenarAnexosVendedor(); mostrarMensagem("Anexo do vendedor adicionado e listado em ordem!"); }
+      else {
+        anexosVendedor[idxEdit] = novo; editandoAnexo.vendedor = null;
         document.getElementById('btnAddUpdVendedor').innerHTML = '<i class="material-icons left">add</i>ADICIONAR ARQUIVO';
         document.getElementById('modoEdicaoAnexoVendedor').style.display = 'none';
-        ordenarAnexosVendedor();
-        mostrarMensagem("Anexo do vendedor atualizado e reposicionado!");
+        ordenarAnexosVendedor(); mostrarMensagem("Anexo do vendedor atualizado e reposicionado!");
       }
-
       localStorage.setItem("anexosVendedor", JSON.stringify(anexosVendedor));
       renderTabelaAnexos('vendedor');
-
       select.value = ""; inputFile.value = ""; nomeEspelho.value = "";
       alertVendedorInfo.style.display = "none"; alertVendedorInfo.innerHTML = "";
       return;
@@ -1138,7 +1069,6 @@ input[type="email"]{ line-height:normal !important; }
   function renderTabelaAnexos(tipo) {
     const tbody = document.getElementById('tabelaAnexos' + capitalize(tipo));
     tbody.innerHTML = "";
-
     if (tipo === 'imovel') {
       ordenarAnexosImovel();
       anexosImovel.forEach((item, idx) => {
@@ -1155,7 +1085,6 @@ input[type="email"]{ line-height:normal !important; }
       });
       return;
     }
-
     ordenarAnexosVendedor();
     anexosVendedor.forEach((item, idx) => {
       const tr = document.createElement("tr");
@@ -1178,25 +1107,19 @@ input[type="email"]{ line-height:normal !important; }
       const nomeEspelho = document.getElementById('nomeArquivoImovel');
       select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
       nomeEspelho.value = item.arquivo || "";
-
       const evt = new Event('change'); select.dispatchEvent(evt);
-
       editandoAnexo.imovel = idx;
       document.getElementById('btnAddUpdImovel').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
       document.getElementById('modoEdicaoAnexoImovel').style.display = 'inline';
       mostrarMensagem("Editando anexo do imóvel...");
       return;
     }
-
     const item = anexosVendedor[idx];
     const select = document.getElementById('tipoAnexoVendedor');
     const nomeEspelho = document.getElementById('nomeArquivoVendedor');
-
     select.value = (typeof item.codigo === 'number') ? String(item.codigo) : "";
     nomeEspelho.value = item.arquivo || "";
-
     const evt = new Event('change'); select.dispatchEvent(evt);
-
     editandoAnexo.vendedor = idx;
     document.getElementById('btnAddUpdVendedor').innerHTML = '<i class="material-icons left">save</i>ATUALIZAR ARQUIVO';
     document.getElementById('modoEdicaoAnexoVendedor').style.display = 'inline';
@@ -1249,10 +1172,7 @@ input[type="email"]{ line-height:normal !important; }
   };
   function setDescricao(tipo){
     const box = painelDescricao();
-    if(!tipo){
-      box.innerHTML = "<b>Descrição:</b> execute a pré-análise para definirmos automaticamente o tipo do laudo.";
-      return;
-    }
+    if(!tipo){ box.innerHTML = "<b>Descrição:</b> execute a pré-análise para definirmos automaticamente o tipo do laudo."; return; }
     box.innerHTML = `<b>Descrição:</b> ${descricoes[tipo] || ""}`;
   }
   function setTipoLaudo(tipo){
@@ -1267,7 +1187,6 @@ input[type="email"]{ line-height:normal !important; }
     localStorage.removeItem(TIPO_LAUDO_KEY);
     setDescricao(null);
   }
-
   function decidirTipoLaudo(valorNum){
     const desmembrado = localStorage.getItem(DESMEMBRADO_KEY) === "true";
     if (!desmembrado) return "supersimples";
@@ -1291,26 +1210,25 @@ input[type="email"]{ line-height:normal !important; }
       if (tips.length) M.Tooltip.init(tips);
     }
 
-    // Catálogos + migrações
     popularCatalogoAnexosImovel();
     popularCatalogoAnexosVendedor();
     migrarAnexosImovelSeNecessario();
     migrarAnexosVendedorSeNecessario();
 
-    // Renderizações
     renderTabelaImoveis();
     renderTabelaVendedores();
     renderTabelaAnexos('imovel');
     renderTabelaAnexos('vendedor');
     renderTabelaLotes();
 
-    // restaura visibilidade do bloco de lotes
     const desm = localStorage.getItem(DESMEMBRADO_KEY) === "true";
     const r = document.querySelector(`input[name="desmembra"][value="${desm?'sim':'nao'}"]`);
     if(r){ r.checked = true; setLotesVisible(desm); }
 
-    maskInputBRL({target: document.getElementById("valorSolicitado")});
+    // Força preenchimento do imóvel fictício (se o usuário digitar o SNCR "111.111.111.111-1")
+    // (o preenchimento acontece no blur do campo SNCR)
 
+    // Tipo de laudo conforme pré-análise
     const isViavel = localStorage.getItem(PRE_VIAVEL_KEY) === "true";
     if (isViavel) aplicarRegraTipoLaudo(); else clearTipoLaudo();
   });
@@ -1338,12 +1256,21 @@ input[type="email"]{ line-height:normal !important; }
     window.location.href = "laudop1.html";
   });
 
-  /* Payload p/ laudo */
+  /* Payload p/ laudo: define 'areaAdquirida' automaticamente */
   function prepararPayloadLaudoAPartirDaElegibilidade() {
     const imv = listaImoveis[0];
     if (!imv) return false;
 
     const existente = JSON.parse(localStorage.getItem("laudo_avaliacao_completo_v1") || "{}");
+
+    // Se desmembrado, soma áreas dos lotes; senão usa a área total do imóvel
+    let areaAdquiridaStr = imv.areaHectares || "0,0000";
+    if (localStorage.getItem(DESMEMBRADO_KEY) === "true") {
+      const lotes = JSON.parse(localStorage.getItem("lotes") || "[]");
+      const soma = lotes.reduce((acc, l)=> acc + parseHa(l.areaHa), 0);
+      areaAdquiridaStr = formatHa(soma);
+    }
+
     const payload = {
       ...existente,
       imovel: {
@@ -1357,11 +1284,11 @@ input[type="email"]{ line-height:normal !important; }
       },
       readonly: {
         ...(existente.readonly || {}),
-        areaAdquirida: imv.areaHectares || ""
+        areaAdquirida: areaAdquiridaStr
       }
     };
     if(localStorage.getItem(DESMEMBRADO_KEY) === "true"){
-      payload.lotes = JSON.parse(localStorage.getItem("lotes") || "[]"); // inclui areaHa
+      payload.lotes = JSON.parse(localStorage.getItem("lotes") || "[]");
     }
     localStorage.setItem("laudo_avaliacao_completo_v1", JSON.stringify(payload));
     return true;
