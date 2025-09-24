@@ -18,17 +18,23 @@
     .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
     .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
 
-    /* Espaçamentos entre campos (mais confortáveis) */
+    /* ------- Espaçamento entre campos ------- */
     .row{
       display:flex; flex-wrap:wrap;
-      column-gap:16px;   /* espaço horizontal */
-      row-gap:12px;      /* espaço vertical */
+      gap:14px 16px;             /* gap vertical e horizontal */
+      margin:6px 0 12px 0;       /* respiro em cada linha */
     }
+    /* evita margens negativas do materialize */
+    .row { margin-left:0 !important; margin-right:0 !important; }
+
     .form__input{
-      flex:1 1 280px;    /* cresce, encolhe, base 280px */
+      flex:1 1 300px;            /* base 300px */
       min-width:260px;
+      margin-bottom:4px;         /* respiro extra sob o campo */
     }
-    .form__input label{ display:block; margin-bottom:6px; font-weight:600; color:#444; }
+    .form__input label{
+      display:block; margin:0 0 6px 0; font-weight:600; color:#444;
+    }
 
     .static-field{
       width:100%;
@@ -45,8 +51,8 @@
     .msg-sucesso{ background:#c8e6c9; color:#256029; }
     .msg-erro{ background:#ffcdd2; color:#b71c1c; }
 
-    .kv{ display:grid; grid-template-columns: 200px 1fr; gap:6px 12px; }
-    .kv div{ padding:6px 10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
+    .kv{ display:grid; grid-template-columns: 220px 1fr; gap:8px 12px; }
+    .kv div{ padding:8px 10px; border:1px solid #e0e0e0; border-radius:6px; background:#fafcfe; }
     .kv .k{ font-weight:700; color:#455a64; background:#f3f7fb; }
   </style>
 </head>
@@ -349,6 +355,14 @@
     b.textContent=texto; b.className=(tipo==="erro")?"msg-erro":"msg-sucesso"; b.style.display="block";
     setTimeout(()=> b.style.display="none", 3500);
   }
+  const parseHa = (v)=>{
+    if (v==null) return null;
+    if (typeof v === "number") return v;
+    const s=String(v).trim();
+    if (!s) return null;
+    const n = Number(s.replace(/\./g,"").replace(",","."));
+    return isNaN(n) ? null : n;
+  };
 
   /* ===== contexto vindo do imoveis.html ===== */
   const ctx = {
@@ -365,17 +379,10 @@
       natUF:"DF", natMun:"Brasília",
       pai:"Renato Guilherme Melo", mae:"Rosa Bárbara Sebastiana",
       conjugeCPF:"111.222.333-44"
-    },
-    "111.111.111-11":{
-      nome:"João da Silva", genero:"Masculino", estadoCivil:"Solteiro(a)",
-      nascimento:"01/01/1990", nis:"98765432100",
-      natUF:"PE", natMun:"Recife", pai:"Carlos da Silva", mae:"Maria da Silva"
     }
   };
   const apiConjuge = {
-    "111.222.333-44":{
-      nome:"Renata Queiroz Melo", nis:"22233344455", nascimento:"05/03/1984"
-    }
+    "111.222.333-44":{ nome:"Renata Queiroz Melo", nis:"22233344455", nascimento:"05/03/1984" }
   };
   const apiCEP = {
     "35930-050": { uf:"MG", municipio:"João Monlevade", bairro:"Alvorada", logradouro:"Rua Lavras" },
@@ -427,13 +434,20 @@
 
     configurarSelecaoDeLotes(imv);
 
-    let area = null;
-    if (ctx.desmembrado && ctx.lotes.length){
-      area = Number(ctx.lotes[0].areaHa || 0) || null;
+    // Não desmembrado -> assume área total do imóvel
+    if (!ctx.desmembrado){
+      const a = parseHa(imv.areaHectares);
+      document.getElementById("areaAdquirida").textContent = (a!=null) ? a.toFixed(2).replace('.',',') : "—";
     }else{
-      area = Number((imv.areaHectares||"").toString().replace(',','.')) || null;
+      // desmembrado -> pré-seleciona 1º lote (se existir) e calcula área
+      const sel = document.getElementById("selectLote");
+      if (sel.options.length > 1 && sel.selectedIndex <= 0){
+        sel.selectedIndex = 1;
+        onChangeLote(); // vai setar a área
+      }else{
+        document.getElementById("areaAdquirida").textContent = "—";
+      }
     }
-    document.getElementById("areaAdquirida").textContent = (area!=null) ? String(area).replace('.',',') : "—";
   }
 
   function configurarSelecaoDeLotes(imv){
@@ -477,7 +491,7 @@
     }
     if(!lot) return;
 
-    document.getElementById("boxResumoLote").style.display="block";
+    document.getElementById("boxResumoLote").style.display = "block";
     document.getElementById("lot_denom").textContent  = lot.denom || "—";
     document.getElementById("lot_sigef").textContent  = lot.sigef || "—";
     document.getElementById("lot_data").textContent   = lot.dataEntrada || "—";
@@ -485,12 +499,21 @@
     document.getElementById("lot_rt").textContent     = lot.docRT || "—";
     document.getElementById("lot_status").textContent = lot.status || "—";
 
-    const area = Number(lot.areaHa || 0) || null;
-    document.getElementById("areaAdquirida").textContent = (area!=null) ? String(area).replace('.',',') : "—";
+    // Área do lote com fallbacks
+    let area = parseHa(lot.areaHa);
+    if (area==null) area = parseHa(lot.area);                 // compatibilidade
+    if (area==null) {                                         // último recurso: área do imóvel / nº de lotes
+      const total = parseHa(imv.areaHectares);
+      const n = Math.max(1, ctx.lotes.length);
+      area = (total!=null) ? (total / n) : null;
+    }
+    document.getElementById("areaAdquirida").textContent = (area!=null) ? area.toFixed(2).replace('.',',') : "—";
   }
 
   /* ===== Dados Pessoais via CPF ===== */
   const elCPF = document.getElementById("cpf");
+  const apiPessoaGet = (cpf)=> apiPessoa[cpf] || null;
+
   function preencherPessoa(data){
     document.getElementById("nome").textContent = data?.nome || "—";
     document.getElementById("genero").textContent = data?.genero || "—";
@@ -511,7 +534,7 @@
     }
   }
   function preencherConjugePorCPF(cpf){
-    const dados = (cpf && apiConjuge[cpf]) || null;
+    const dados = apiConjuge[cpf] || null;
     document.getElementById("nomeConj").textContent = dados?.nome || "—";
     document.getElementById("nisConj").textContent  = dados?.nis || "—";
     document.getElementById("nascConj").textContent = dados?.nascimento || "—";
@@ -519,7 +542,7 @@
 
   elCPF.addEventListener("input", (e)=> e.target.value = maskCPF(e.target.value));
   elCPF.addEventListener("blur", ()=>{
-    const d = apiPessoa[elCPF.value.trim()];
+    const d = apiPessoaGet(elCPF.value.trim());
     if (!d){ toast("CPF não encontrado na base fictícia. Preencha outro.", "erro"); return; }
     preencherPessoa(d);
   });
@@ -637,25 +660,20 @@
   function limparCamposEStorage(){
     if (!confirm("Limpar todos os campos desta etapa e os dados salvos?")) return;
 
-    // limpa storage desta etapa
     localStorage.removeItem("beneficiario_etapa1");
     localStorage.removeItem("beneficiario_pessoais");
 
-    // inputs de texto/data
     document.querySelectorAll('input[type="text"], input[type="date"]').forEach(i=> i.value = "");
-    // radios DAP: marca "não"
     const rNao = document.querySelector('input[name="temDAP"][value="nao"]');
     if (rNao){ rNao.checked = true; document.getElementById("numeroDAP").disabled = true; }
-    // selects
+
     document.getElementById("selectImovel").selectedIndex = 0;
     document.getElementById("selectLote").innerHTML = '<option value="" disabled selected>Selecione o lote</option>';
     document.getElementById("wrapLote").style.display = "none";
     document.getElementById("notaLoteUnico").style.display = "none";
     document.getElementById("agenteFinanceiro").selectedIndex = 0;
 
-    // campos estáticos -> “—”
     document.querySelectorAll('.static-field').forEach(div => div.textContent = "—");
-    // esconder cônjuge e resumo de lote
     document.getElementById("secConjuge").style.display = "none";
     document.getElementById("boxResumoLote").style.display = "none";
 
