@@ -361,31 +361,40 @@
     document.getElementById("areaLoteHa").readOnly = true;
   }
 
-  // Ao escolher um lote, define a área padrão
-  document.getElementById("selectLoteAdd").addEventListener("change", ()=>{
-    const sel=document.getElementById("selectLoteAdd");
-    const opt=sel.options[sel.selectedIndex];
-    const area=parseFloat(opt?.dataset?.area ?? "NaN");
-    const condo = document.querySelector('input[name="condo"]:checked').value==="sim";
-    document.getElementById("areaLoteHa").value = isNaN(area) ? "" : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
-    document.getElementById("areaLoteHa").readOnly = !condo;
-  });
+// Ao escolher um lote, define a área padrão e trava/destrava conforme "condomínio"
+document.getElementById("selectLoteAdd").addEventListener("change", ()=>{
+  const sel = document.getElementById("selectLoteAdd");
+  const opt = sel.options[sel.selectedIndex];
+  const area = parseFloat(opt?.dataset?.area ?? "NaN");
+  const condo = document.querySelector('input[name="condo"]:checked').value === "sim";
 
-  // Alterna editabilidade quando marcar condomínio
-  Array.from(document.querySelectorAll('input[name="condo"]')).forEach(r=>{
-    r.addEventListener("change", ()=>{
-      const condo = document.querySelector('input[name="condo"]:checked').value==="sim";
-      const areaInput=document.getElementById("areaLoteHa");
-      areaInput.readOnly = !condo;
-      // se ficou readonly, restaura área padrão do lote
-      if (!condo){
-        const sel=document.getElementById("selectLoteAdd");
-        const opt=sel.options[sel.selectedIndex];
-        const area=parseFloat(opt?.dataset?.area ?? "NaN");
-        areaInput.value = isNaN(area) ? "" : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
-      }
-    });
+  // preenche a área do lote
+  document.getElementById("areaLoteHa").value = isNaN(area)
+    ? ""
+    : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // regra: se NÃO é condomínio, campo fica bloqueado; se SIM, campo libera edição
+  document.getElementById("areaLoteHa").readOnly = !condo;
+});
+
+// Alterna editabilidade quando marcar "Área em condomínio?"
+Array.from(document.querySelectorAll('input[name="condo"]')).forEach(r=>{
+  r.addEventListener("change", ()=>{
+    const condo = document.querySelector('input[name="condo"]:checked').value === "sim";
+    const areaInput = document.getElementById("areaLoteHa");
+    areaInput.readOnly = !condo;
+
+    // se ficou bloqueado (Não), restaura a área padrão do lote selecionado
+    if (!condo) {
+      const sel = document.getElementById("selectLoteAdd");
+      const opt = sel.options[sel.selectedIndex];
+      const area = parseFloat(opt?.dataset?.area ?? "NaN");
+      areaInput.value = isNaN(area)
+        ? ""
+        : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+    }
   });
+});
 
   /* ===== Tabela de lotes do beneficiário ===== */
   let editIndex = null;
