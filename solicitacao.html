@@ -11,8 +11,8 @@
   <link crossorigin="anonymous" data-next-font="size-adjust" href="/" rel="preconnect"/>
   <link data-n-g="" href="./styles.css" rel="stylesheet"/>
   <noscript data-n-css=""></noscript>
-  <script data-nscript="beforeInteractive" defer="" src="https://docs-ds.estaleiro.serpro.gov.br/docs/ds/dist/core.min.js"></script>
-  <script data-nscript="beforeInteractive" defer="" src="/libs/vlibras-plugin.js"></script>
+  <script data-nscript="beforeInteractive" defer src="https://docs-ds.estaleiro.serpro.gov.br/docs/ds/dist/core.min.js"></script>
+  <script data-nscript="beforeInteractive" defer src="/libs/vlibras-plugin.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
   <style>
     .material-symbols-outlined { 
@@ -29,116 +29,148 @@
   </div>
   <div class="br-cookiebar default d-none" tabindex="-1"></div>
 
-  <nav class="br-skiplink full">
-    <a accesskey="1" class="br-item" href="#main-content">Ir para o conteúdo <span class="br-tag text ml-1">1</span></a>
-    <a accesskey="2" class="br-item" href="#acesso-rapido">Ir para o menu <span class="br-tag text ml-1">2</span></a>
-    <a accesskey="3" class="br-item" href="#main-searchbox">Ir para a busca <span class="br-tag text ml-1">3</span></a>
-    <a accesskey="4" class="br-item" href="#footer">Ir para o rodapé <span class="br-tag text ml-1">4</span></a>
-  </nav>
-
-  <div class="Home_container__d256j">
-    <div class="template-base">
-      <!-- ===== HEADER ===== -->
-      <header class="br-header" data-sticky="data-sticky" id="header">
-        <div class="container-fluid">
-          <div class="header-top">
-            <div class="header-logo">
-              <a href="https://www.gov.br/pt-br"><img alt="logo" data-nimg="1" height="40" src="./govbr-logo.webp" width="110"/></a>
-            </div>
-          </div>
+  <!-- ===== HEADER ===== -->
+  <header class="br-header" data-sticky="data-sticky" id="header">
+    <div class="container-fluid">
+      <div class="header-top">
+        <div class="header-logo">
+          <a href="https://www.gov.br/pt-br"><img alt="logo" height="40" src="./govbr-logo.webp" width="110"/></a>
         </div>
-      </header>
+      </div>
+    </div>
+  </header>
 
-      <!-- ===== MAIN ===== -->
-      <main class="d-flex flex-fill position-relative" id="main">
-        <div class="container-lg">
-          <div class="row full-height">
-            <div class="col d-flex flex-column">
+  <!-- ===== MAIN ===== -->
+  <main class="d-flex flex-fill position-relative" id="main">
+    <div class="container-lg">
+      <div class="row full-height">
+        <div class="col d-flex flex-column">
 
-              <div class="br-breadcrumb pt-3">
-                <ul class="crumb-list">
-                  <li class="crumb home">
-                    <a class="br-button circle" href="/processos"><span class="sr-only">Página inicial</span><span class="material-symbols-outlined">home</span></a>
+          <div class="br-breadcrumb pt-3">
+            <ul class="crumb-list">
+              <li class="crumb home">
+                <a class="br-button circle" href="/processos"><span class="sr-only">Página inicial</span><span class="material-symbols-outlined">home</span></a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="main-content pl-sm-3 mt-4 full-height d-flex flex-column mb-5" id="main-content">
+            <h1>Minhas solicitações</h1>
+            <p class="text-base text-center text-lg-left mb-5">Veja todas as solicitações que ainda estão em tramitação.</p>
+
+            <!-- ===== Abas Pessoa Jurídica / Física ===== -->
+            <div class="br-tab">
+              <nav class="tab-nav">
+                <ul>
+                  <li class="tab-item active">
+                    <button aria-label="Pessoa Jurídica" title="Pessoa Jurídica" type="button"><span class="name">Pessoa Jurídica</span></button>
+                  </li>
+                  <li class="tab-item">
+                    <button aria-label="Pessoa física" title="Pessoa física" type="button"><span class="name">Pessoa física</span></button>
                   </li>
                 </ul>
-              </div>
+              </nav>
 
-              <div class="main-content pl-sm-3 mt-4 full-height d-flex flex-column mb-5" id="main-content">
-                <h1>Minhas solicitações</h1>
-                <p class="text-base text-center text-lg-left mb-5">Veja todas as solicitações que ainda estão em tramitação.</p>
+              <div class="tab-content">
+                <div class="cpf-processes py-4">
 
-                <div class="br-table medium" data-collapse="data-collapse">
-                  <div class="table-header">
-                    <div class="top-bar">
-                      <div class="table-title">Solicitações</div>
+                  <!-- ===== Filtros Concluídas / Em andamento ===== -->
+                  <div class="row">
+                    <div class="col-12 col-sm-6 col-md-6 d-flex align-items-center justify-content-end">
+                      <div class="br-radio mr-3">
+                        <input id="radio-completed" name="h-radio" type="radio"/>
+                        <label for="radio-completed">Concluídas</label>
+                      </div>
+                      <div class="br-radio mt-0">
+                        <input checked id="radio-in-progress" name="h-radio" type="radio"/>
+                        <label for="radio-in-progress">Em andamento</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-6 d-flex">
+                      <div class="br-switch small right">
+                        <input id="switch-pending-for-you" type="checkbox"/>
+                        <label for="switch-pending-for-you">Pendentes pra você</label>
+                        <div class="switch-data"></div>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="responsive">
-                    <table>
-                      <caption>Solicitações</caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">N° do protocolo</th>
-                          <th scope="col">Nome do serviço</th>
-                          <th scope="col">Data da requisição</th>
-                          <th scope="col">Fase</th>
-                          <th scope="col" style="width:100px;max-width:100px">O que fazer</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- Protocolo 1 -->
-                        <tr>
-                          <td>000014.0080173/2025</td>
-                          <td>Obter Crédito Fundiário (Imóvel)</td>
-                          <td>19/09/2025</td>
-                          <td>
-                            <span class="phase br-badge circle bg-primary text-pure-0">1</span>
-                            <span> Inicial</span>
-                          </td>
-                          <td>
-                            <button id="btnResponderImovel" class="br-button primary small" type="button">
-                              Responder
-                            </button>
-                          </td>
-                        </tr>
-                        <!-- Protocolo 2 -->
-                        <tr>
-                          <td>000014.0080172/2025</td>
-                          <td>Obter Crédito Fundiário (Proponente)</td>
-                          <td>19/09/2025</td>
-                          <td>
-                            <span class="phase br-badge circle bg-primary text-pure-0">1</span>
-                            <span> Solicitação</span>
-                          </td>
-                          <td>
-                            <button id="btnResponderBeneficiario" class="br-button primary small" type="button">
-                              Responder
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <!-- ===== Pesquisa avançada ===== -->
+                  <div class="text-center py-3">
+                    <button aria-label="Pesquisa avançada" class="br-button pesquisa-toggle advanced-search" type="button">
+                      <span class="link-search">Pesquisa avançada</span>
+                      <span class="material-symbols-outlined">search</span>
+                    </button>
                   </div>
 
+                  <!-- ===== Tabela de Solicitações ===== -->
+                  <div class="br-table medium" data-collapse="data-collapse" data-search="data-search">
+                    <div class="table-header">
+                      <div class="top-bar">
+                        <div class="table-title">Solicitações</div>
+                      </div>
+                    </div>
+
+                    <div class="responsive">
+                      <table>
+                        <caption>Solicitações</caption>
+                        <thead>
+                          <tr>
+                            <th>N° do protocolo</th>
+                            <th>Nome do serviço</th>
+                            <th>Data da requisição</th>
+                            <th>Fase</th>
+                            <th style="width:100px;max-width:100px">O que fazer</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <!-- Protocolo 1 -->
+                          <tr>
+                            <td>000014.0080173/2025</td>
+                            <td>Obter Crédito Fundiário (Imóvel)</td>
+                            <td>19/09/2025</td>
+                            <td>
+                              <span class="phase br-badge circle bg-primary text-pure-0">1</span>
+                              <span> Inicial</span>
+                            </td>
+                            <td>
+                              <button id="btnResponderImovel" class="br-button primary small" type="button">Responder</button>
+                            </td>
+                          </tr>
+                          <!-- Protocolo 2 -->
+                          <tr>
+                            <td>000014.0080172/2025</td>
+                            <td>Obter Crédito Fundiário (Proponente)</td>
+                            <td>19/09/2025</td>
+                            <td>
+                              <span class="phase br-badge circle bg-primary text-pure-0">1</span>
+                              <span> Solicitação</span>
+                            </td>
+                            <td>
+                              <button id="btnResponderBeneficiario" class="br-button primary small" type="button">Responder</button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div><!-- fim tabela -->
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </main>
+          </div><!-- fim main-content -->
 
-      <!-- ===== FOOTER ===== -->
-      <footer class="br-footer pt-3" id="footer">
-        <div class="container-fluid pb-3 d-flex flex-column">
-          <div><a href="https://www.gov.br/pt-br"><img alt="logo-white" height="35" src="/_next/image?url=%2Fgovbr-logo-white.png&amp;w=256&amp;q=75" width="100"/></a></div>
-          <div class="mt-1">
-            <a class="text-down-01 text-medium" href="/termos-de-uso"><strong>Termo de Uso e Aviso de Privacidade</strong></a>
-          </div>
         </div>
-      </footer>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="br-footer pt-3" id="footer">
+    <div class="container-fluid pb-3 d-flex flex-column">
+      <div><a href="https://www.gov.br/pt-br"><img alt="logo-white" height="35" src="/_next/image?url=%2Fgovbr-logo-white.png&amp;w=256&amp;q=75" width="100"/></a></div>
+      <div class="mt-1"><a class="text-down-01 text-medium" href="/termos-de-uso"><strong>Termo de Uso e Aviso de Privacidade</strong></a></div>
+    </div>
+  </footer>
 </div>
 
 <!-- ===== SCRIPTS ===== -->
