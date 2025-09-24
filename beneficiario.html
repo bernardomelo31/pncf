@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>[MDA] Obter Crédito Fundiário - Beneficiário (Etapa 1)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"/>
+
+  <style>
+    body{ background:#fafafa; padding:20px; }
+    .btn-square{ border-radius:0 !important; }
+    .btn-add{ background:#1976d2 !important; color:#fff !important; }
+    .btn-danger{ background:#b71c1c !important; color:#fff !important; }
+
+    .card-titlebar{
+      margin:0; line-height:1.5; font-weight:normal; background:#1976d2; color:#fff; padding:10px;
+    }
+
+    .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
+    .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
+
+    .row{ display:flex; flex-wrap:wrap; gap:16px; }
+    .form__input{ flex:1; min-width:240px; }
+    .form__input label{ display:block; margin-bottom:4px; font-weight:600; color:#444; }
+
+    /* aparência unificada dos campos de “visualização” (não editáveis) */
+    .static-field{
+      height:44px; display:flex; align-items:center; padding:0 12px;
+      border:1px solid #cfd8dc; border-radius:4px; background:#f7f9fc; color:#37474f; font-weight:600;
+    }
+
+    /* selects e inputs (quando existirem) */
+    .form__input select.browser-default{
+      height:44px !important; line-height:44px !important; border:1px solid #cfd8dc !important;
+      border-radius:4px !important; background:#fff !important; padding:0 10px !important;
+    }
+
+    #mensagem{ display:none; padding:10px; border-radius:6px; font-weight:600; margin:12px 0; }
+    .msg-sucesso{ background:#c8e6c9; color:#256029; }
+    .msg-erro{ background:#ffcdd2; color:#b71c1c; }
+  </style>
+</head>
+<body>
+
+<div class="container content">
+  <div class="card">
+    <div class="card-content" style="padding:0;">
+      <h2 class="card-titlebar center-align">Obter Crédito Fundiário — Beneficiário</h2>
+
+      <div style="text-align:center; color:#145aa3; padding:.6rem;">
+        <i class="material-icons" style="font-size:24px; vertical-align:middle;">label_important</i>
+        <b>ETAPA 1: Resumo</b>
+      </div>
+
+      <div class="section" style="padding:0 16px 16px 16px;">
+        <p style="margin:.4rem 0 1rem 0;">
+          Para obter o crédito do Programa de Financiamento, indique o Município de referência do imóvel rural a ser adquirido,
+          a linha de financiamento e o agente financeiro de interesse. Município de referência é aquele onde a maior parte da
+          propriedade rural está localizada.
+        </p>
+
+        <div id="mensagem"></div>
+
+        <div class="form-section">
+          <h5><i class="material-icons">summarize</i>Resumo do Imóvel</h5>
+
+          <div class="row">
+            <div class="form__input">
+              <label>UF de referência *</label>
+              <div id="ufRef" class="static-field">—</div>
+            </div>
+            <div class="form__input">
+              <label>Município de referência *</label>
+              <div id="munRef" class="static-field">—</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="form__input">
+              <label>Linha de financiamento</label>
+              <div id="linhaFin" class="static-field">A definir nesta análise</div>
+            </div>
+            <div class="form__input">
+              <label for="agenteFinanceiro">Agente financeiro de interesse *</label>
+              <select id="agenteFinanceiro" class="browser-default" required>
+                <option value="" disabled selected>Selecione</option>
+                <option>Caixa Econômica Federal</option>
+                <option>Banco do Brasil</option>
+                <option>Banco da Amazônia (BASA)</option>
+                <option>Banco do Nordeste (BNB)</option>
+                <option>Sicoob</option>
+                <option>Sicredi</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-align" style="margin:12px 0;">
+          <a href="index.html" class="btn btn-danger btn-square waves-effect"><i class="material-icons left">arrow_back</i>VOLTAR</a>
+          <button id="btnSalvar" class="btn btn-add btn-square waves-effect"><i class="material-icons left">save</i>SALVAR</button>
+          <a id="btnProximo" href="beneficiario-etapa2.html" class="btn btn-add btn-square waves-effect">
+            <i class="material-icons left">arrow_forward</i>PRÓXIMO
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+  // util: mensagem
+  function toast(texto, tipo="sucesso"){
+    const box = document.getElementById("mensagem");
+    box.textContent = texto;
+    box.className = (tipo==="erro") ? "msg-erro" : "msg-sucesso";
+    box.style.display = "block";
+    setTimeout(()=> box.style.display="none", 3500);
+  }
+
+  // carrega UF/Município do primeiro imóvel salvo no fluxo anterior
+  function preencherResumoDoImovel(){
+    try{
+      const imoveis = JSON.parse(localStorage.getItem("imoveis") || "[]");
+      const imv = imoveis[0];
+      if(!imv){
+        toast("Nenhum imóvel encontrado. Volte e cadastre os dados do imóvel.", "erro");
+        return;
+      }
+      document.getElementById("ufRef").textContent = imv.uf || "—";
+      document.getElementById("munRef").textContent = imv.municipio || "—";
+
+      // se já houver uma sugestão/definição de linha de financiamento salva em outro ponto, usa
+      const resumoSalvo = JSON.parse(localStorage.getItem("beneficiario_resumo") || "{}");
+      if (resumoSalvo.linhaFin) document.getElementById("linhaFin").textContent = resumoSalvo.linhaFin;
+    }catch(e){
+      console.error(e);
+      toast("Falha ao ler os dados do imóvel.", "erro");
+    }
+  }
+
+  // restaura seleção do agente
+  function restaurarAgente(){
+    const dados = JSON.parse(localStorage.getItem("beneficiario_resumo") || "{}");
+    if(dados.agente) document.getElementById("agenteFinanceiro").value = dados.agente;
+  }
+
+  // salvar (UF/Município vêm do imóvel; agente é selecionável)
+  document.getElementById("btnSalvar").addEventListener("click", ()=>{
+    const uf = document.getElementById("ufRef").textContent.trim();
+    const mun = document.getElementById("munRef").textContent.trim();
+    const agente = document.getElementById("agenteFinanceiro").value;
+
+    if(!agente){ toast("Selecione o agente financeiro.", "erro"); return; }
+
+    const payload = {
+      ufRef: uf, munRef: mun,
+      linhaFin: document.getElementById("linhaFin").textContent.trim(),
+      agente
+    };
+    localStorage.setItem("beneficiario_resumo", JSON.stringify(payload));
+    toast("Resumo salvo.");
+  });
+
+  // inicialização
+  document.addEventListener("DOMContentLoaded", ()=>{
+    if (window.M){
+      const tips = document.querySelectorAll(".tooltipped");
+      if (tips.length) M.Tooltip.init(tips);
+    }
+    preencherResumoDoImovel();
+    restaurarAgente();
+  });
+</script>
+</body>
+</html>
