@@ -17,7 +17,7 @@
 
     .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
     .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
-    .form-section h6{ margin:0 0 .5rem 0; color:#1976d2; }
+    .form-section h6{ margin:.8rem 0 .5rem 0; color:#1976d2; }
 
     /* ====== GRADE ====== */
     .grid-3{ display:grid; grid-template-columns:repeat(3,minmax(260px,1fr)); gap:var(--gap-y) var(--gap-x); align-items:start; }
@@ -37,7 +37,7 @@
       box-sizing:border-box;
     }
     .static-field{ background:#f7f9fc !important; color:#37474f; font-weight:600; display:flex; align-items:center; }
-    .choice{ display:flex; align-items:center; gap:16px; }
+    .choice{ display:flex; align-items:center; gap:16px; height:auto !important; border:none !important; background:transparent !important; padding:0 !important; }
 
     /* Tabela-resumo leve */
     .kv{ display:grid; grid-template-columns: 240px 1fr; gap:6px 12px; }
@@ -48,7 +48,10 @@
     .msg-sucesso{ background:#c8e6c9; color:#256029; }
     .msg-erro{ background:#ffcdd2; color:#b71c1c; }
 
-    /* Responsivo */
+    table.striped tbody tr:nth-child(odd){ background:#f9f9f9; }
+    .action-btn{ background:none; border:none; cursor:pointer; margin:0 4px; color:#444; }
+    .action-btn .material-icons{ font-size:20px; vertical-align:middle; }
+
     @media (max-width: 1100px){
       .grid-3{ grid-template-columns:repeat(2,minmax(260px,1fr)); }
     }
@@ -73,9 +76,9 @@
 
         <div id="mensagem"></div>
 
-        <!-- Seleção do Imóvel/Lote -->
+        <!-- Seleção do Imóvel -->
         <div class="form-section">
-          <h5><i class="material-icons">home</i>Seleção do Imóvel e Lote</h5>
+          <h5><i class="material-icons">home</i>Seleção do Imóvel</h5>
 
           <div class="grid-3">
             <div class="field">
@@ -84,29 +87,9 @@
                 <option value="" disabled selected>Selecione o imóvel (SNCR)</option>
               </select>
             </div>
-            <div id="wrapLote" class="field" style="display:none;">
-              <label for="selectLote">Lote *</label>
-              <select id="selectLote" class="browser-default">
-                <option value="" disabled selected>Selecione o lote</option>
-              </select>
-            </div>
           </div>
 
-          <div id="notaLoteUnico" class="static-field" style="display:none; margin-top:6px;">
-            Imóvel não desmembrado: lote único (Total).
-          </div>
-        </div>
-
-        <!-- Resumo do imóvel + área adquirida -->
-        <div class="form-section">
-          <h5><i class="material-icons">summarize</i>Resumo do Imóvel Selecionado</h5>
-
-          <div class="grid-3">
-            <div class="field"><label>UF de referência</label><div id="ufRef"  class="static-field">—</div></div>
-            <div class="field"><label>Município de referência</label><div id="munRef" class="static-field">—</div></div>
-          </div>
-
-          <div class="kv" id="kvImovel" style="margin-top:8px;">
+          <div class="kv" id="kvImovel" style="margin-top:12px;">
             <div class="k">Certificação SIGEF</div><div id="kv_sigef">—</div>
             <div class="k">Status</div><div id="kv_status">—</div>
             <div class="k">Área total do imóvel (ha)</div><div id="kv_area">—</div>
@@ -114,24 +97,68 @@
             <div class="k">CNS</div><div id="kv_cns">—</div>
             <div class="k">Matrícula</div><div id="kv_matricula">—</div>
           </div>
+        </div>
+
+        <!-- Anexação de Lotes do Beneficiário -->
+        <div class="form-section">
+          <h5><i class="material-icons">layers</i>Lotes do Beneficiário</h5>
+
+          <!-- Form de inclusão/edição -->
+          <form id="formAddLote" onsubmit="event.preventDefault(); adicionarOuAtualizarLote();">
+            <div class="grid-3">
+              <div class="field">
+                <label for="selectLoteAdd">Lote *</label>
+                <select id="selectLoteAdd" class="browser-default">
+                  <option value="" disabled selected>Selecione o lote</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Área em condomínio?</label>
+                <div class="choice" style="height:44px;">
+                  <label style="display:flex;align-items:center;gap:6px;">
+                    <input name="condo" type="radio" value="nao" checked><span>Não</span>
+                  </label>
+                  <label style="display:flex;align-items:center;gap:6px;">
+                    <input name="condo" type="radio" value="sim"><span>Sim</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="areaLoteHa">Área a adquirir (ha)</label>
+                <input id="areaLoteHa" type="text" placeholder="0,00" readonly>
+              </div>
+            </div>
+
+            <div style="margin-top:8px;">
+              <button id="btnAddUpdLote" type="submit" class="btn btn-add btn-square">
+                <i class="material-icons left">add</i>ADICIONAR LOTE
+              </button>
+              <small id="flagEditLote" style="display:none; color:#b71c1c; font-weight:700; margin-left:8px;">✎ MODO EDIÇÃO</small>
+            </div>
+          </form>
+
+          <!-- Tabela -->
+          <div class="table-wrapper" style="margin-top:14px;">
+            <table class="striped bordered">
+              <thead>
+                <tr>
+                  <th>Denominação</th>
+                  <th>SIGEF</th>
+                  <th>Área (ha)</th>
+                  <th>Condomínio</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaLotesBenef"></tbody>
+            </table>
+          </div>
 
           <div class="grid-3" style="margin-top:12px;">
             <div class="field" style="max-width:360px;">
-              <label>Área a ser adquirida (ha)</label>
-              <div id="areaAdquirida" class="static-field">—</div>
-            </div>
-          </div>
-
-          <div id="boxResumoLote" style="display:none; margin-top:12px;">
-            <h6>Resumo do Lote</h6>
-            <div class="kv">
-              <div class="k">Denominação</div><div id="lot_denom">—</div>
-              <div class="k">SIGEF</div><div id="lot_sigef">—</div>
-              <div class="k">Data de entrada</div><div id="lot_data">—</div>
-              <div class="k">Responsável Técnico(a)</div><div id="lot_resp">—</div>
-              <div class="k">Documento de RT</div><div id="lot_rt">—</div>
-              <div class="k">Status</div><div id="lot_status">—</div>
-              <div class="k">Área do lote (ha)</div><div id="lot_area">—</div>
+              <label>Total da área a ser adquirida (ha)</label>
+              <div id="areaTotalAdquirida" class="static-field">—</div>
             </div>
           </div>
         </div>
@@ -145,51 +172,24 @@
               <label for="bp_cpf">CPF *</label>
               <input id="bp_cpf" type="text" placeholder="000.000.000-00">
             </div>
-            <div class="field">
-              <label>Nome</label>
-              <div id="bp_nome" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>Gênero</label>
-              <div id="bp_genero" class="static-field">—</div>
-            </div>
+            <div class="field"><label>Nome</label><div id="bp_nome" class="static-field">—</div></div>
+            <div class="field"><label>Gênero</label><div id="bp_genero" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label>Estado civil</label>
-              <div id="bp_ec" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>Data de nascimento</label>
-              <div id="bp_nasc" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>NIS (PIS/PASEP)</label>
-              <div id="bp_nis" class="static-field">—</div>
-            </div>
+            <div class="field"><label>Estado civil</label><div id="bp_ec" class="static-field">—</div></div>
+            <div class="field"><label>Data de nascimento</label><div id="bp_nasc" class="static-field">—</div></div>
+            <div class="field"><label>NIS (PIS/PASEP)</label><div id="bp_nis" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label>Estado de naturalidade</label>
-              <div id="bp_natuf" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>Município de naturalidade</label>
-              <div id="bp_natmun" class="static-field">—</div>
-            </div>
+            <div class="field"><label>Estado de naturalidade</label><div id="bp_natuf" class="static-field">—</div></div>
+            <div class="field"><label>Município de naturalidade</label><div id="bp_natmun" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label>Nome do pai</label>
-              <div id="bp_pai" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>Nome da mãe</label>
-              <div id="bp_mae" class="static-field">—</div>
-            </div>
+            <div class="field"><label>Nome do pai</label><div id="bp_pai" class="static-field">—</div></div>
+            <div class="field"><label>Nome da mãe</label><div id="bp_mae" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
@@ -211,18 +211,9 @@
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label for="rg">RG *</label>
-              <input id="rg" type="text" placeholder="Documento de identificação">
-            </div>
-            <div class="field">
-              <label for="orgao">Órgão emissor *</label>
-              <input id="orgao" type="text" placeholder="SSP, DETRAN...">
-            </div>
-            <div class="field">
-              <label for="dataRg">Data de emissão *</label>
-              <input id="dataRg" type="text" placeholder="dd/mm/aaaa">
-            </div>
+            <div class="field"><label for="rg">RG *</label><input id="rg" type="text" placeholder="Documento de identificação"></div>
+            <div class="field"><label for="orgao">Órgão emissor *</label><input id="orgao" type="text" placeholder="SSP, DETRAN..."></div>
+            <div class="field"><label for="dataRg">Data de emissão *</label><input id="dataRg" type="text" placeholder="dd/mm/aaaa"></div>
           </div>
         </div>
 
@@ -231,44 +222,20 @@
           <h5><i class="material-icons">place</i>Endereço e Contato</h5>
 
           <div class="grid-3">
-            <div class="field">
-              <label for="cep">CEP *</label>
-              <input type="text" id="cep" placeholder="00000-000">
-            </div>
-            <div class="field">
-              <label>UF *</label>
-              <div id="uf" class="static-field">—</div>
-            </div>
-            <div class="field">
-              <label>Município *</label>
-              <div id="municipio" class="static-field">—</div>
-            </div>
+            <div class="field"><label for="cep">CEP *</label><input type="text" id="cep" placeholder="00000-000"></div>
+            <div class="field"><label>UF *</label><div id="uf" class="static-field">—</div></div>
+            <div class="field"><label>Município *</label><div id="municipio" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label>Bairro</label>
-              <div id="bairro" class="static-field">—</div>
-            </div>
-            <div class="field" style="grid-column: span 2;">
-              <label>Endereço (Rua, Qd., Lt.) *</label>
-              <div id="endereco" class="static-field">—</div>
-            </div>
+            <div class="field"><label>Bairro</label><div id="bairro" class="static-field">—</div></div>
+            <div class="field" style="grid-column: span 2;"><label>Endereço (Rua, Qd., Lt.) *</label><div id="endereco" class="static-field">—</div></div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label>Número *</label>
-              <input id="numero" type="text" placeholder="000">
-            </div>
-            <div class="field">
-              <label>Complemento</label>
-              <input id="compl" type="text" placeholder="Opcional">
-            </div>
-            <div class="field">
-              <label>Celular *</label>
-              <input id="celular" type="tel" placeholder="(00) 00000-0000">
-            </div>
+            <div class="field"><label>Número *</label><input id="numero" type="text" placeholder="000"></div>
+            <div class="field"><label>Complemento</label><input id="compl" type="text" placeholder="Opcional"></div>
+            <div class="field"><label>Celular *</label><input id="celular" type="tel" placeholder="(00) 00000-0000"></div>
           </div>
         </div>
 
@@ -310,19 +277,20 @@
   function getJSON(key, fallback){ try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fallback; }catch(e){ return fallback; } }
   function setJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
   function toast(txt, tipo="sucesso"){ const box=document.getElementById("mensagem"); box.textContent=txt; box.className=(tipo==="erro")?"msg-erro":"msg-sucesso"; box.style.display="block"; setTimeout(()=>box.style.display="none",3200); }
-
   const fmtBR = (n)=> n.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
   function parsePt(v){ if(v==null) return NaN; if(typeof v==="number") return v; const s=String(v).replace(/\./g,"").replace(",","."); const n=parseFloat(s); return isNaN(n)?NaN:n; }
-  function getLoteAreaHa(l){ const cand=l?.areaHa ?? l?.areaLote ?? l?.area ?? l?.areaLoteHa; return parsePt(cand); }
+  function maskCPF(v){ v=v.replace(/\D/g,"").slice(0,11); let out=""; if(v.length>0) out=v.slice(0,3); if(v.length>3) out+="."+v.slice(3,6); if(v.length>6) out+="."+v.slice(6,9); if(v.length>9) out+="-"+v.slice(9,11); return out; }
+  function maskCEP(v){ v=v.replace(/\D/g,"").slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); return v; }
 
   /* ===== Estado de imóveis/lotes ===== */
   const ctx = {
     imoveis:     getJSON("imoveis", []),
     lotes:       getJSON("lotes", []),
-    desmembrado: localStorage.getItem("imovelDesmembrado")==="true"
+    desmembrado: localStorage.getItem("imovelDesmembrado")==="true",
+    lotesBenef:  [] // {id, denom, sigef, areaHa, condominio}
   };
 
-  /* ===== Preencher select de imóveis ===== */
+  /* ===== Imóvel ===== */
   function preencherSelectImovel(){
     const sel = document.getElementById("selectImovel");
     sel.innerHTML = '<option value="" disabled selected>Selecione o imóvel (SNCR)</option>';
@@ -336,20 +304,18 @@
     if (salvo && salvo.imovelIndex!=null && ctx.imoveis[salvo.imovelIndex]){
       sel.value=String(salvo.imovelIndex);
       atualizarResumoDoImovel(salvo.imovelIndex);
-      const ag=document.getElementById("agenteFinanceiro"); if(salvo.agente) ag.value=salvo.agente;
-      if(ctx.desmembrado && salvo.loteSelecionado?.id){
-        popularLotes(ctx.imoveis[salvo.imovelIndex]);
-        document.getElementById("selectLote").value=salvo.loteSelecionado.id;
-        onChangeLote();
+      // restaura lotes do beneficiário
+      if (Array.isArray(salvo.lotesSelecionados)) {
+        ctx.lotesBenef = salvo.lotesSelecionados;
+        renderTabelaLotesBenef();
       }
+      // agente
+      const ag=document.getElementById("agenteFinanceiro"); if(salvo.agente) ag.value=salvo.agente;
     }
   }
 
   function atualizarResumoDoImovel(index){
     const imv = ctx.imoveis[index]; if(!imv) return;
-
-    document.getElementById("ufRef").textContent   = imv.uf || "—";
-    document.getElementById("munRef").textContent  = imv.municipio || "—";
     document.getElementById("kv_sigef").textContent     = imv.codigoImovel || "—";
     document.getElementById("kv_status").textContent    = imv.status || "—";
     document.getElementById("kv_area").textContent      = imv.areaHectares || "—";
@@ -357,68 +323,160 @@
     document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
     document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
 
-    popularLotes(imv);
-
-    if(!ctx.desmembrado){
-      const a=parsePt(imv.areaHectares);
-      document.getElementById("areaAdquirida").textContent = isNaN(a) ? "—" : fmtBR(a);
-    }else{
-      document.getElementById("areaAdquirida").textContent = "—";
-    }
+    popularLotesAdd(imv);
+    // limpar form de lote e tabela do beneficiário quando mudar de imóvel
+    ctx.lotesBenef = [];
+    renderTabelaLotesBenef();
   }
 
-  function popularLotes(imv){
-    const wrap=document.getElementById("wrapLote");
-    const nota=document.getElementById("notaLoteUnico");
-    const sel=document.getElementById("selectLote");
-    const boxResumo=document.getElementById("boxResumoLote");
+  function getLoteAreaHa(l){ const cand=l?.areaHa ?? l?.areaLote ?? l?.area ?? l?.areaLoteHa; return parsePt(cand); }
 
-    boxResumo.style.display="none";
+  function popularLotesAdd(imv){
+    const sel=document.getElementById("selectLoteAdd");
     sel.innerHTML='<option value="" disabled selected>Selecione o lote</option>';
 
-    let lotesFiltrados=ctx.lotes;
-    if(ctx.lotes.length && ctx.lotes[0]?.sncrRef){
-      lotesFiltrados=ctx.lotes.filter(l=>l.sncrRef===imv.parcelaCodigo);
-    }
-
-    if(ctx.desmembrado && lotesFiltrados.length){
-      wrap.style.display="block"; nota.style.display="none";
-      lotesFiltrados.forEach((l,i)=>{
+    if (ctx.desmembrado && ctx.lotes.length){
+      // filtra por sncrRef quando existir
+      let lotes = ctx.lotes;
+      if (ctx.lotes[0]?.sncrRef) lotes = ctx.lotes.filter(l=>l.sncrRef===imv.parcelaCodigo);
+      lotes.forEach((l,i)=>{
         const opt=document.createElement("option");
         const id=String(l.id || l.sigef || i);
-        opt.value=id; opt.textContent=`${l.denom || l.denominacao || 'Lote'} — ${(l.sigef || '').toString()}`;
+        opt.value=id;
+        opt.textContent=`${l.denom || l.denominacao || 'Lote'} — ${(l.sigef || '').toString()}`;
+        opt.dataset.sigef = l.sigef || '';
+        opt.dataset.area  = getLoteAreaHa(l);
         sel.appendChild(opt);
       });
     }else{
-      wrap.style.display="none"; nota.style.display="block";
+      // não desmembrado: lote único (usa área total do imóvel)
+      const opt=document.createElement("option");
+      opt.value="unico"; opt.textContent="Lote Único (Total)"; opt.dataset.sigef= imv.codigoImovel || '';
+      opt.dataset.area = parsePt(imv.areaHectares);
+      sel.appendChild(opt);
     }
+    // reset form
+    document.getElementById("areaLoteHa").value="";
+    document.querySelector('input[name="condo"][value="nao"]').checked = true;
+    document.getElementById("areaLoteHa").readOnly = true;
   }
 
-  function onChangeLote(){
-    const chosenId=document.getElementById("selectLote").value; if(!chosenId) return;
-    const imvIdx=parseInt(document.getElementById("selectImovel").value,10);
-    const imv=ctx.imoveis[imvIdx];
+  // Ao escolher um lote, define a área padrão
+  document.getElementById("selectLoteAdd").addEventListener("change", ()=>{
+    const sel=document.getElementById("selectLoteAdd");
+    const opt=sel.options[sel.selectedIndex];
+    const area=parseFloat(opt?.dataset?.area ?? "NaN");
+    const condo = document.querySelector('input[name="condo"]:checked').value==="sim";
+    document.getElementById("areaLoteHa").value = isNaN(area) ? "" : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById("areaLoteHa").readOnly = !condo;
+  });
 
-    let lot=ctx.lotes.find(l=>String(l.id || l.sigef)===chosenId);
-    if(!lot && ctx.lotes[0]?.sncrRef){
-      lot=ctx.lotes.find(l=>l.sncrRef===imv.parcelaCodigo && String(l.id || l.sigef)===chosenId);
+  // Alterna editabilidade quando marcar condomínio
+  Array.from(document.querySelectorAll('input[name="condo"]')).forEach(r=>{
+    r.addEventListener("change", ()=>{
+      const condo = document.querySelector('input[name="condo"]:checked').value==="sim";
+      const areaInput=document.getElementById("areaLoteHa");
+      areaInput.readOnly = !condo;
+      // se ficou readonly, restaura área padrão do lote
+      if (!condo){
+        const sel=document.getElementById("selectLoteAdd");
+        const opt=sel.options[sel.selectedIndex];
+        const area=parseFloat(opt?.dataset?.area ?? "NaN");
+        areaInput.value = isNaN(area) ? "" : area.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+      }
+    });
+  });
+
+  /* ===== Tabela de lotes do beneficiário ===== */
+  let editIndex = null;
+
+  function adicionarOuAtualizarLote(){
+    const sel=document.getElementById("selectLoteAdd");
+    const val=sel.value;
+    if(!val){ toast("Selecione o lote.", "erro"); return; }
+
+    const opt=sel.options[sel.selectedIndex];
+    const denom=opt.textContent.split(" — ")[0];
+    const sigef=opt.dataset.sigef || "";
+    const condo = document.querySelector('input[name="condo"]:checked').value==="sim";
+    const areaStr=document.getElementById("areaLoteHa").value.trim();
+    const areaNum=parsePt(areaStr);
+
+    if(isNaN(areaNum) || areaNum<=0){ toast("Informe/valide a área do lote (ha).", "erro"); return; }
+
+    // não permitir duplicar o mesmo lote (exceto quando estiver editando a mesma linha)
+    const dupIndex = ctx.lotesBenef.findIndex(x=>x.id===val);
+    if (dupIndex>=0 && dupIndex!==editIndex){
+      toast("Este lote já foi anexado.", "erro");
+      return;
     }
-    if(!lot) return;
 
-    document.getElementById("boxResumoLote").style.display="block";
-    document.getElementById("lot_denom").textContent=lot.denom || lot.denominacao || "—";
-    document.getElementById("lot_sigef").textContent=lot.sigef || "—";
-    document.getElementById("lot_data").textContent=lot.dataEntrada || "—";
-    document.getElementById("lot_resp").textContent=lot.responsavel || "—";
-    document.getElementById("lot_rt").textContent  =lot.docRT || "—";
-    document.getElementById("lot_status").textContent=lot.status || "—";
+    const objeto = { id: val, denom, sigef, areaHa: areaNum, condominio: condo };
 
-    const aLot=getLoteAreaHa(lot);
-    document.getElementById("lot_area").textContent=isNaN(aLot)?"—":fmtBR(aLot);
-    document.getElementById("areaAdquirida").textContent=isNaN(aLot)?"—":fmtBR(aLot);
+    if (editIndex!==null){
+      ctx.lotesBenef[editIndex] = objeto;
+      editIndex=null;
+      document.getElementById("flagEditLote").style.display="none";
+      document.getElementById("btnAddUpdLote").innerHTML = '<i class="material-icons left">add</i>ADICIONAR LOTE';
+      toast("Lote atualizado.");
+    } else {
+      ctx.lotesBenef.push(objeto);
+      toast("Lote anexado.");
+    }
+
+    renderTabelaLotesBenef();
+    // limpar mini-form
+    document.getElementById("formAddLote").reset();
+    // reconfigura condo/área readonly
+    document.querySelector('input[name="condo"][value="nao"]').checked = true;
+    document.getElementById("areaLoteHa").readOnly = true;
   }
 
-  /* ===== CPF -> “API” fictícia ===== */
+  function renderTabelaLotesBenef(){
+    const tbody=document.getElementById("tabelaLotesBenef");
+    tbody.innerHTML="";
+    let total=0;
+
+    ctx.lotesBenef.forEach((l,i)=>{
+      total += (parseFloat(l.areaHa)||0);
+      const tr=document.createElement("tr");
+      tr.innerHTML = `
+        <td>${l.denom}</td>
+        <td>${l.sigef || "—"}</td>
+        <td>${fmtBR(parseFloat(l.areaHa)||0)}</td>
+        <td>${l.condominio ? "Sim" : "Não"}</td>
+        <td>
+          <button class="action-btn" title="Editar" onclick="editarLinha(${i})"><i class="material-icons">edit</i></button>
+          <button class="action-btn" title="Excluir" onclick="excluirLinha(${i})"><i class="material-icons">delete</i></button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("areaTotalAdquirida").textContent = ctx.lotesBenef.length ? fmtBR(total) : "—";
+  }
+
+  window.editarLinha = function(i){
+    const l=ctx.lotesBenef[i];
+    editIndex=i;
+    const sel=document.getElementById("selectLoteAdd");
+    sel.value = l.id;
+    const evt=new Event('change'); sel.dispatchEvent(evt);
+
+    if(l.condominio) document.querySelector('input[name="condo"][value="sim"]').checked = true;
+    else document.querySelector('input[name="condo"][value="nao"]').checked = true;
+
+    document.getElementById("areaLoteHa").value = fmtBR(l.areaHa);
+    document.getElementById("areaLoteHa").readOnly = !l.condominio;
+    document.getElementById("flagEditLote").style.display="inline";
+    document.getElementById("btnAddUpdLote").innerHTML = '<i class="material-icons left">save</i>ATUALIZAR LOTE';
+  }
+
+  window.excluirLinha = function(i){
+    ctx.lotesBenef.splice(i,1);
+    renderTabelaLotesBenef();
+  }
+
+  /* ===== CPF -> API fictícia ===== */
   const FAKE_DB = {
     "222.222.222-22":{
       nome:"Sebastião Mateus Melo",
@@ -433,24 +491,13 @@
     }
   };
 
-  function maskCPF(v){
-    v=v.replace(/\D/g,"").slice(0,11);
-    let out="";
-    if(v.length>0) out=v.slice(0,3);
-    if(v.length>3) out+="."+v.slice(3,6);
-    if(v.length>6) out+="."+v.slice(6,9);
-    if(v.length>9) out+="-"+v.slice(9,11);
-    return out;
-  }
-
   const cpfInput=document.getElementById("bp_cpf");
   cpfInput.addEventListener("input",e=>{ e.target.value=maskCPF(e.target.value); });
   cpfInput.addEventListener("blur", ()=>{
     const cpf=cpfInput.value.trim();
     const d=FAKE_DB[cpf];
-    if(!d){ toast("CPF não encontrado na base fictícia. Preenchendo com traços.", "erro"); preencherPessoa(null); return; }
-    preencherPessoa(d);
-    toast("Dados preenchidos via API fictícia.");
+    if(!d){ toast("CPF não encontrado na base fictícia.", "erro"); preencherPessoa(null); return; }
+    preencherPessoa(d); toast("Dados preenchidos via API fictícia.");
   });
 
   function preencherPessoa(d){
@@ -475,13 +522,12 @@
     });
   });
 
-  /* ===== CEP -> endereço (fictício) ===== */
+  /* ===== CEP fictício ===== */
   const fakeCepDB = {
     "70000-000": { uf:"DF", municipio:"Brasília", bairro:"Asa Norte", endereco:"SQN 305 Bloco B" },
     "01000-000": { uf:"SP", municipio:"São Paulo", bairro:"Sé", endereco:"Praça da Sé" },
     "35930-050": { uf:"MG", municipio:"João Monlevade", bairro:"Alvorada", endereco:"Rua Lavras" }
   };
-  function maskCEP(v){ v=v.replace(/\D/g,"").slice(0,8); if(v.length>5) v=v.slice(0,5)+"-"+v.slice(5); return v; }
   const cepInput=document.getElementById("cep");
   cepInput.addEventListener("input",e=> e.target.value = maskCEP(e.target.value));
   cepInput.addEventListener("blur", ()=>{
@@ -500,33 +546,12 @@
     const imvIdxStr=document.getElementById("selectImovel").value;
     if(!imvIdxStr){ toast("Selecione o imóvel (SNCR).", "erro"); return; }
     if(!ag){ toast("Selecione o agente financeiro.", "erro"); return; }
+    if(!ctx.lotesBenef.length){ toast("Anexe pelo menos um lote do beneficiário.", "erro"); return; }
 
     const imvIdx=parseInt(imvIdxStr,10);
     const imv=ctx.imoveis[imvIdx];
 
-    let loteSelecionado=null, areaAdq=NaN;
-    if(ctx.desmembrado){
-      const idSel=document.getElementById("selectLote").value;
-      if(!idSel){ toast("Selecione o lote.", "erro"); return; }
-      let lot=ctx.lotes.find(l=>String(l.id || l.sigef)===idSel);
-      if(!lot && ctx.lotes[0]?.sncrRef){
-        lot=ctx.lotes.find(l=>l.sncrRef===imv.parcelaCodigo && String(l.id || l.sigef)===idSel);
-      }
-      areaAdq=getLoteAreaHa(lot);
-      loteSelecionado={
-        id:String(lot?.id || lot?.sigef || ""),
-        denom: lot?.denom || lot?.denominacao || "",
-        sigef: lot?.sigef || "",
-        dataEntrada: lot?.dataEntrada || "",
-        responsavel: lot?.responsavel || "",
-        docRT: lot?.docRT || "",
-        status: lot?.status || "",
-        areaHa: areaAdq
-      };
-    }else{
-      areaAdq=parsePt(imv.areaHectares);
-      loteSelecionado={ id:"unico", denom:"Lote Único (Total)" };
-    }
+    const totalArea = ctx.lotesBenef.reduce((s,x)=> s + (parseFloat(x.areaHa)||0), 0);
 
     const payload={
       imovelIndex: imvIdx,
@@ -536,8 +561,8 @@
         sigef: imv.codigoImovel, status: imv.status, area: imv.areaHectares,
         denom: imv.nomeArea, cns: imv.registroCns, matricula: imv.registroMatricula
       },
-      loteSelecionado,
-      areaAdquiridaHa: areaAdq,
+      lotesSelecionados: ctx.lotesBenef,
+      areaAdquiridaTotalHa: totalArea,
       agente: ag,
       beneficiario:{
         cpf: document.getElementById("bp_cpf").value.trim(),
@@ -561,42 +586,37 @@
     };
 
     setJSON("beneficiario_etapa1", payload);
-    localStorage.setItem("areaAdquiridaHa", String(areaAdq));
     toast("Etapa 1 salva.");
   }
 
   function limpar(){
     localStorage.removeItem("beneficiario_etapa1");
     document.getElementById("selectImovel").value="";
-    document.getElementById("wrapLote").style.display="none";
-    document.getElementById("notaLoteUnico").style.display="none";
-    document.getElementById("selectLote").innerHTML='<option value="" disabled selected>Selecione o lote</option>';
-    ["kv_sigef","kv_status","kv_area","kv_denom","kv_cns","kv_matricula","ufRef","munRef"]
-      .forEach(id=> document.getElementById(id).textContent="—");
-    document.getElementById("boxResumoLote").style.display="none";
-    document.getElementById("areaAdquirida").textContent="—";
-    ["lot_denom","lot_sigef","lot_data","lot_resp","lot_rt","lot_status","lot_area"]
-      .forEach(id=> document.getElementById(id).textContent="—");
+    ["kv_sigef","kv_status","kv_area","kv_denom","kv_cns","kv_matricula"].forEach(id=> document.getElementById(id).textContent="—");
+    document.getElementById("selectLoteAdd").innerHTML='<option value="" disabled selected>Selecione o lote</option>';
+    ctx.lotesBenef = []; renderTabelaLotesBenef();
 
     // pessoais
-    document.getElementById("bp_cpf").value="";
-    preencherPessoa(null);
+    document.getElementById("bp_cpf").value=""; preencherPessoa(null);
     document.getElementById("cadunico").value="";
     document.querySelector('input[name="hasDap"][value="nao"]').checked=true;
     document.getElementById("numDap").value=""; document.getElementById("numDap").disabled=true;
     document.getElementById("rg").value=""; document.getElementById("orgao").value=""; document.getElementById("dataRg").value="";
-
     // endereço
     document.getElementById("cep").value="";
     ["uf","municipio","bairro","endereco"].forEach(id=> document.getElementById(id).textContent="—");
     document.getElementById("numero").value=""; document.getElementById("compl").value=""; document.getElementById("celular").value="";
     document.getElementById("agenteFinanceiro").value="";
+    // mini-form de lote
+    document.getElementById("formAddLote").reset();
+    document.querySelector('input[name="condo"][value="nao"]').checked = true;
+    document.getElementById("areaLoteHa").value=""; document.getElementById("areaLoteHa").readOnly = true;
+
     toast("Etapa 1 limpa.");
   }
 
   /* ===== Eventos ===== */
   document.getElementById("selectImovel").addEventListener("change", e=> atualizarResumoDoImovel(e.target.value));
-  document.getElementById("selectLote").addEventListener("change", onChangeLote);
   document.getElementById("btnSalvar").addEventListener("click", salvar);
   document.getElementById("btnLimpar").addEventListener("click", limpar);
 
