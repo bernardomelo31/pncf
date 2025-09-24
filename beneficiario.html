@@ -12,20 +12,31 @@
     .btn-square{ border-radius:0 !important; }
     .btn-add{ background:#1976d2 !important; color:#fff !important; }
     .btn-danger{ background:#b71c1c !important; color:#fff !important; }
+    .btn-muted{ background:#eceff1 !important; color:#263238 !important; }
     .card-titlebar{ margin:0; line-height:1.5; background:#1976d2; color:#fff; padding:10px; text-align:center; }
 
     .form-section{ margin-top:1.2rem; padding:1rem; background:#fff; border:1px solid #ddd; border-radius:6px; }
     .form-section h5{ margin:0 0 .8rem 0; color:#1976d2; display:flex; align-items:center; gap:8px; }
 
-    .row{ display:flex; flex-wrap:wrap; gap:16px; }
-    .form__input{ flex:1; min-width:240px; }
-    .form__input label{ display:block; margin-bottom:4px; font-weight:600; color:#444; }
+    /* Espaçamentos entre campos (mais confortáveis) */
+    .row{
+      display:flex; flex-wrap:wrap;
+      column-gap:16px;   /* espaço horizontal */
+      row-gap:12px;      /* espaço vertical */
+    }
+    .form__input{
+      flex:1 1 280px;    /* cresce, encolhe, base 280px */
+      min-width:260px;
+    }
+    .form__input label{ display:block; margin-bottom:6px; font-weight:600; color:#444; }
 
     .static-field{
+      width:100%;
       height:44px; display:flex; align-items:center; padding:0 12px;
       border:1px solid #cfd8dc; border-radius:4px; background:#f7f9fc; color:#37474f; font-weight:600;
     }
     .form__input input,.form__input select.browser-default{
+      width:100%;
       height:44px !important; line-height:44px !important; border:1px solid #cfd8dc !important;
       border-radius:4px !important; background:#fff !important; padding:0 10px !important;
     }
@@ -55,7 +66,7 @@
 
         <div id="mensagem"></div>
 
-        <!-- Seleção inicial (recupera do imoveis.html) -->
+        <!-- Seleção inicial -->
         <div class="form-section">
           <h5><i class="material-icons">home</i>Seleção do Imóvel e Lote</h5>
 
@@ -223,7 +234,7 @@
           </div>
         </div>
 
-        <!-- Cônjuge (apenas se casado/união estável) -->
+        <!-- Cônjuge -->
         <div id="secConjuge" class="form-section" style="display:none;">
           <h5><i class="material-icons">diversity_2</i>Dados do Cônjuge</h5>
 
@@ -262,7 +273,7 @@
           </div>
         </div>
 
-        <!-- Endereço (CEP -> auto preencher) + Contato (apenas celular) -->
+        <!-- Endereço + Contato -->
         <div class="form-section">
           <h5><i class="material-icons">pin_drop</i>Endereço e Contato</h5>
 
@@ -308,11 +319,14 @@
           </div>
         </div>
 
-        <div class="right-align" style="margin:12px 0;">
+        <div class="right-align" style="margin:12px 0; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+          <button id="btnLimpar" class="btn btn-muted btn-square waves-effect" type="button" title="Limpar todos os campos">
+            <i class="material-icons left">cleaning_services</i>LIMPAR CAMPOS
+          </button>
           <a href="index.html" class="btn btn-danger btn-square waves-effect">
             <i class="material-icons left">arrow_back</i>VOLTAR
           </a>
-          <button id="btnSalvar" class="btn btn-add btn-square waves-effect">
+          <button id="btnSalvar" class="btn btn-add btn-square waves-effect" type="button">
             <i class="material-icons left">save</i>SALVAR
           </button>
           <a id="btnProximo" href="beneficiario-etapa2.html" class="btn btn-add btn-square waves-effect">
@@ -368,7 +382,7 @@
     "70000-000": { uf:"DF", municipio:"Brasília", bairro:"Asa Norte", logradouro:"SQN 107 Bloco K" }
   };
 
-  /* ===== util masks simples ===== */
+  /* ===== masks ===== */
   function maskCPF(v){ return v.replace(/\D/g,'').slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'); }
   function maskCEP(v){ return v.replace(/\D/g,'').slice(0,8).replace(/(\d{5})(\d)/,'$1-$2'); }
   function maskPhone(v){ return v.replace(/\D/g,'').slice(0,11).replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d{4})$/,'$1-$2'); }
@@ -384,18 +398,15 @@
       sel.appendChild(o);
     });
 
-    // restaura (se já salvo)
     const salvo = getJSON("beneficiario_etapa1", null);
     if (salvo && salvo.imovelIndex!=null && ctx.imoveis[salvo.imovelIndex]){
       sel.value=String(salvo.imovelIndex);
       atualizarResumoDoImovel(salvo.imovelIndex);
-      // lote
       if (document.getElementById("wrapLote").style.display!=="none"){
         const sL=document.getElementById("selectLote");
         sL.value = salvo.loteSelecionado?.id ?? "";
         if (sL.value) onChangeLote();
       }
-      // agente
       const ag=document.getElementById("agenteFinanceiro");
       if (salvo.agente) ag.value=salvo.agente;
     }
@@ -404,11 +415,9 @@
   function atualizarResumoDoImovel(index){
     const imv = ctx.imoveis[index]; if(!imv) return;
 
-    // UF/Mun
     document.getElementById("ufRef").textContent = imv.uf || "—";
     document.getElementById("munRef").textContent = imv.municipio || "—";
 
-    // resumo
     document.getElementById("kv_sigef").textContent     = imv.codigoImovel || "—";
     document.getElementById("kv_status").textContent    = imv.status || "—";
     document.getElementById("kv_area").textContent      = imv.areaHectares || "—";
@@ -416,13 +425,10 @@
     document.getElementById("kv_cns").textContent       = imv.registroCns || "—";
     document.getElementById("kv_matricula").textContent = imv.registroMatricula || "—";
 
-    // lotes
     configurarSelecaoDeLotes(imv);
 
-    // área adquirida (do lote se houver, senão do imóvel)
     let area = null;
     if (ctx.desmembrado && ctx.lotes.length){
-      // por padrão use o primeiro até o usuário escolher
       area = Number(ctx.lotes[0].areaHa || 0) || null;
     }else{
       area = Number((imv.areaHectares||"").toString().replace(',','.')) || null;
@@ -439,7 +445,6 @@
     boxResumoLote.style.display="none";
     sel.innerHTML = '<option value="" disabled selected>Selecione o lote</option>';
 
-    // se os lotes tiverem sncrRef, filtramos por esse imóvel
     let lotesFiltrados = ctx.lotes;
     if (ctx.lotes.length && ctx.lotes[0]?.sncrRef){
       lotesFiltrados = ctx.lotes.filter(l => l.sncrRef === imv.parcelaCodigo);
@@ -480,17 +485,12 @@
     document.getElementById("lot_rt").textContent     = lot.docRT || "—";
     document.getElementById("lot_status").textContent = lot.status || "—";
 
-    // área adquirida do lote
     const area = Number(lot.areaHa || 0) || null;
     document.getElementById("areaAdquirida").textContent = (area!=null) ? String(area).replace('.',',') : "—";
   }
 
   /* ===== Dados Pessoais via CPF ===== */
   const elCPF = document.getElementById("cpf");
-  const fields = {
-    nome:"nome", genero:"genero", estadoCivil:"estadoCivil", nascimento:"nascimento", nis:"nis",
-    natUF:"natUF", natMun:"natMun", pai:"nomePai", mae:"nomeMae"
-  };
   function preencherPessoa(data){
     document.getElementById("nome").textContent = data?.nome || "—";
     document.getElementById("genero").textContent = data?.genero || "—";
@@ -502,19 +502,16 @@
     document.getElementById("nomePai").textContent = data?.pai || "—";
     document.getElementById("nomeMae").textContent = data?.mae || "—";
 
-    // exibe cônjuge se casado/união estável
     const showConj = (data?.estadoCivil==="Casado(a)" || data?.estadoCivil==="União Estável");
     document.getElementById("secConjuge").style.display = showConj ? "block" : "none";
 
-    // se tiver CPF do cônjuge, tenta preencher
     if (showConj && data?.conjugeCPF){
       document.getElementById("cpfConj").value = data.conjugeCPF;
       preencherConjugePorCPF(data.conjugeCPF);
     }
   }
-
   function preencherConjugePorCPF(cpf){
-    const dados = apiConjuge[cpf];
+    const dados = (cpf && apiConjuge[cpf]) || null;
     document.getElementById("nomeConj").textContent = dados?.nome || "—";
     document.getElementById("nisConj").textContent  = dados?.nis || "—";
     document.getElementById("nascConj").textContent = dados?.nascimento || "—";
@@ -556,19 +553,15 @@
     if (!imIdxStr){ toast("Selecione o imóvel (SNCR).", "erro"); return; }
     if (!ag){ toast("Selecione o agente financeiro.", "erro"); return; }
 
-    // valida pessoais mínimos
     if (!elCPF.value.trim()){ toast("Informe o CPF.", "erro"); return; }
     if (!document.getElementById("cadunico").value.trim()){ toast("Informe o número do CadÚnico.", "erro"); return; }
     if (!document.getElementById("rg").value.trim() || !document.getElementById("orgao").value.trim() || !document.getElementById("emissao").value){
       toast("Complete os documentos de identificação do beneficiário.", "erro"); return;
     }
-
-    // endereço básico
     if (!document.getElementById("cep").value.trim() || !document.getElementById("numeroEnd").value.trim() || !document.getElementById("cel").value.trim()){
       toast("Complete CEP, número e celular.", "erro"); return;
     }
 
-    // monta seleção lote (se houver)
     let loteSel = null;
     if (ctx.desmembrado){
       const idSel = document.getElementById("selectLote").value;
@@ -583,14 +576,12 @@
       loteSel = { id:"unico", denom:"Lote Único (Total)" };
     }
 
-    // salva seleção (mantendo compatibilidade com etapa anterior)
     setJSON("beneficiario_etapa1", {
       imovelIndex: parseInt(imIdxStr,10),
       agente: ag,
       loteSelecionado: loteSel
     });
 
-    // dados pessoais
     const payload = {
       cpf: elCPF.value.trim(),
       nome: document.getElementById("nome").textContent,
@@ -634,9 +625,7 @@
         numero: document.getElementById("numeroEnd").value.trim(),
         complemento: document.getElementById("complEnd").value.trim()
       },
-      contato: {
-        celular: document.getElementById("cel").value.trim()
-      },
+      contato: { celular: document.getElementById("cel").value.trim() },
       areaAdquiridaHa: document.getElementById("areaAdquirida").textContent
     };
 
@@ -644,10 +633,40 @@
     toast("Dados do beneficiário salvos.");
   }
 
+  /* ===== LIMPAR CAMPOS + limpar localStorage desta etapa ===== */
+  function limparCamposEStorage(){
+    if (!confirm("Limpar todos os campos desta etapa e os dados salvos?")) return;
+
+    // limpa storage desta etapa
+    localStorage.removeItem("beneficiario_etapa1");
+    localStorage.removeItem("beneficiario_pessoais");
+
+    // inputs de texto/data
+    document.querySelectorAll('input[type="text"], input[type="date"]').forEach(i=> i.value = "");
+    // radios DAP: marca "não"
+    const rNao = document.querySelector('input[name="temDAP"][value="nao"]');
+    if (rNao){ rNao.checked = true; document.getElementById("numeroDAP").disabled = true; }
+    // selects
+    document.getElementById("selectImovel").selectedIndex = 0;
+    document.getElementById("selectLote").innerHTML = '<option value="" disabled selected>Selecione o lote</option>';
+    document.getElementById("wrapLote").style.display = "none";
+    document.getElementById("notaLoteUnico").style.display = "none";
+    document.getElementById("agenteFinanceiro").selectedIndex = 0;
+
+    // campos estáticos -> “—”
+    document.querySelectorAll('.static-field').forEach(div => div.textContent = "—");
+    // esconder cônjuge e resumo de lote
+    document.getElementById("secConjuge").style.display = "none";
+    document.getElementById("boxResumoLote").style.display = "none";
+
+    toast("Campos e dados salvos foram limpos.");
+  }
+
   /* ===== eventos ===== */
   document.getElementById("selectImovel").addEventListener("change", (e)=> atualizarResumoDoImovel(e.target.value));
   document.getElementById("selectLote").addEventListener("change", onChangeLote);
   document.getElementById("btnSalvar").addEventListener("click", salvar);
+  document.getElementById("btnLimpar").addEventListener("click", limparCamposEStorage);
 
   /* ===== init ===== */
   document.addEventListener("DOMContentLoaded", ()=>{
