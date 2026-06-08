@@ -662,13 +662,27 @@
 
     // Config de "infinito": evita repetir as ultimas N palavras quando possível
     const RECENT_BUFFER_SIZE = 12;
-    const HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/ding-check.mp3");
+    const DEFAULT_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/acertou_By4HwUh.mp3");
+    const SECOND_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/fahhh_KcgAXfs.mp3");
+    const THIRD_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/michael-jackson-hee-hee.mp3");
+    const FOURTH_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/cr_suuu.mp3");
+    const FIFTH_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/anime-wow-sound-effect.mp3");
+    const SIXTH_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/ronaldo.mp3");
+    const SEVENTH_HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/song-aura.mp3");
+    const ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/faustao-errou.mp3");
+    const SECOND_ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/roblox-death-sound_1.mp3");
+    const THIRD_ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/roblox-gravity-coil.mp3");
+    const FOURTH_ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/impact_explosion_03_UhRGks5.mp3");
+    const FIFTH_ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/dexter-meme.mp3");
+    const SIXTH_ERROR_SOUND = new Audio("https://www.myinstants.com/media/sounds/error_CDOxCYm.mp3");
 
     // Estado do jogo
     let score = 0;
     let errors = 0;
     let hits = 0;
     let round = 1;
+    let consecutiveHits = 0;
+    let consecutiveErrors = 0;
 
     let current = null; // item atual
     let recentWords = []; // buffer de palavras recentes
@@ -712,6 +726,40 @@
       sound.pause();
       sound.currentTime = 0;
       sound.play().catch(() => {});
+    }
+
+    function playErrorSound() {
+      if (consecutiveErrors === 6) {
+        playSound(SIXTH_ERROR_SOUND);
+      } else if (consecutiveErrors === 5) {
+        playSound(FIFTH_ERROR_SOUND);
+      } else if (consecutiveErrors === 4) {
+        playSound(FOURTH_ERROR_SOUND);
+      } else if (consecutiveErrors === 3) {
+        playSound(THIRD_ERROR_SOUND);
+      } else if (consecutiveErrors === 2) {
+        playSound(SECOND_ERROR_SOUND);
+      } else {
+        playSound(ERROR_SOUND);
+      }
+    }
+
+    function playHitSound() {
+      if (consecutiveHits === 7) {
+        playSound(SEVENTH_HIT_SOUND);
+      } else if (consecutiveHits === 6) {
+        playSound(SIXTH_HIT_SOUND);
+      } else if (consecutiveHits === 5) {
+        playSound(FIFTH_HIT_SOUND);
+      } else if (consecutiveHits === 4) {
+        playSound(FOURTH_HIT_SOUND);
+      } else if (consecutiveHits === 3) {
+        playSound(THIRD_HIT_SOUND);
+      } else if (consecutiveHits === 2) {
+        playSound(SECOND_HIT_SOUND);
+      } else {
+        playSound(DEFAULT_HIT_SOUND);
+      }
     }
 
     function clearVisualState() {
@@ -851,8 +899,11 @@
         feedbackLocked = true;
         setBadState();
         errors += 1;
+        consecutiveHits = 0;
+        consecutiveErrors += 1;
         elErrors.textContent = errors;
         setMsg("OPS! ESSA LETRA NAO E AQUI.", "bad");
+        playErrorSound();
         scheduleAutoClear();
         return;
       }
@@ -867,6 +918,8 @@
         feedbackLocked = true;
         setOkState();
         hits += 1;
+        consecutiveHits += 1;
+        consecutiveErrors = 0;
         score += 10;
         round += 1;
 
@@ -875,14 +928,17 @@
         elRound.textContent = round;
 
         setMsg("ACERTOU! MUITO BEM!", "ok");
-        playSound(HIT_SOUND);
+        playHitSound();
         makeConfetti();
         scheduleNext();
       } else {
         setBadState();
         errors += 1;
+        consecutiveHits = 0;
+        consecutiveErrors += 1;
         elErrors.textContent = errors;
         setMsg("OPS! TENTE DE NOVO!", "bad");
+        playErrorSound();
         scheduleAutoClear();
       }
     }
