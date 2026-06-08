@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jogo Infinito: Adição e Subtração</title>
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Fontes infantis -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#7c3aed;
+      --bg2:#06b6d4;
+      --bg3:#f59e0b;
+      --bg4:#22c55e;
+      --bg5:#fb7185;
+
+      --card: rgba(255,255,255,.22);
+      --stroke: rgba(255,255,255,.35);
+      --white:#ffffff;
+
+      --ok:#22c55e;
+      --bad:#ef4444;
+
+      --shadow: 0 20px 50px rgba(0,0,0,.25);
+      --radius: 26px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:18px;
+
+      font-family: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--white);
+
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 85% 15%, rgba(255,255,255,.25), transparent 55%),
+        radial-gradient(1200px 700px at 50% 110%, rgba(255,255,255,.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4), var(--bg5));
+      background-size: 200% 200%;
+      animation: bgMove 12s ease-in-out infinite;
+      overflow-x:hidden;
+    }
+
+    @keyframes bgMove{
+      0%{ background-position: 0% 50%; }
+      50%{ background-position: 100% 50%; }
+      100%{ background-position: 0% 50%; }
+    }
+
+    .app{
+      width:min(1350px, 100%);
+      display:grid;
+      gap:16px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+
+      padding:18px 20px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 2px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow:hidden;
+    }
+
+    .topbar::before{
+      content:"";
+      position:absolute;
+      inset:-120px;
+      background: radial-gradient(circle at 20% 40%, rgba(255,255,255,.45), transparent 55%),
+                  radial-gradient(circle at 75% 35%, rgba(255,255,255,.35), transparent 55%);
+      transform: rotate(10deg);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .title{
+      position: relative;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .title h1{
+      margin:0;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 30px;
+      letter-spacing:.2px;
+      text-shadow: 0 6px 18px rgba(0,0,0,.20);
+    }
+
+    .subtitle{
+      margin:0;
+      font-size: 16px;
+      opacity:.95;
+    }
+
+    .stats{
+      position: relative;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+
+      padding:12px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.30);
+      border: 2px solid rgba(255,255,255,.40);
+      box-shadow: 0 12px 22px rgba(0,0,0,.18);
+      color: #08102a;
+      font-weight: 800;
+    }
+
+    .pill .label{
+      font-size: 16px;
+      opacity:.9;
+    }
+
+    .pill b{
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 34px;
+      letter-spacing:.02em;
+    }
+
+    .trophyPill{
+      min-width: 230px;
+      align-items:flex-start;
+      flex-direction:column;
+      border-radius: 24px;
+      gap:6px;
+    }
+
+    .trophyHead{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .trophyHead b{
+      font-size: 28px;
+      line-height:1;
+    }
+
+    .trophyTray{
+      width:100%;
+      min-height: 32px;
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:4px;
+      font-size: 24px;
+      line-height:1;
+    }
+
+    .board{
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 2px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+      position: relative;
+    }
+
+    .boardInner{
+      padding:18px;
+      display:grid;
+      gap:16px;
+    }
+
+    .mathBox{
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.30);
+      border: 2px solid rgba(255,255,255,.45);
+      padding: 22px 12px;
+      display:grid;
+      place-items:center;
+      position: relative;
+      overflow:hidden;
+      min-height: 310px;
+    }
+
+    .mathBox::before{
+      content:"";
+      position:absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.55), transparent 60%);
+      top: -60px;
+      left: -70px;
+      opacity:.65;
+      pointer-events:none;
+    }
+
+    .mathBox::after{
+      content:"";
+      position:absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.35), transparent 60%);
+      bottom: -80px;
+      right: -90px;
+      opacity:.65;
+      pointer-events:none;
+    }
+
+    .icon{
+      font-family: "Material Icons";
+      font-size: 96px;
+      line-height: 1;
+      user-select:none;
+      color: #111827;
+      filter: drop-shadow(0 16px 22px rgba(0,0,0,.25));
+      animation: bounce 1.6s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes bounce{
+      0%,100%{ transform: translateY(0) rotate(-2deg); }
+      50%{ transform: translateY(-10px) rotate(2deg); }
+    }
+
+    .prompt{
+      margin-top: 8px;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 26px;
+      color: #0b1020;
+      text-shadow: 0 6px 18px rgba(255,255,255,.50);
+      position: relative;
+      z-index: 1;
+      text-align:center;
+    }
+
+    .equation{
+      position: relative;
+      z-index: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      flex-wrap:wrap;
+      margin: 12px 0;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      color:#0b1020;
+      text-shadow: 0 10px 18px rgba(255,255,255,.35);
+    }
+
+    .numCard, .opCard, .equalCard, .questionCard{
+      display:grid;
+      place-items:center;
+      border-radius: 28px;
+      border: 3px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.32);
+      box-shadow: 0 16px 28px rgba(0,0,0,.16);
+      min-width: 112px;
+      min-height: 112px;
+      padding: 8px 18px;
+    }
+
+    .numCard{
+      font-size: 72px;
+      font-weight: 900;
+    }
+
+    .opCard, .equalCard{
+      font-size: 72px;
+      font-weight: 900;
+      min-width: 86px;
+    }
+
+    .questionCard{
+      font-size: 74px;
+      font-weight: 900;
+      min-width: 130px;
+      color: #7c2d12;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); }
+      50%{ transform: scale(1.05); }
+    }
+
+    .objects{
+      position: relative;
+      z-index: 1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:10px;
+      max-width: 980px;
+      padding: 10px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.20);
+      border: 2px solid rgba(255,255,255,.35);
+    }
+
+    .objectGroup{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:6px;
+      padding:8px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.18);
+      min-height: 64px;
+    }
+
+    .objectItem{
+      font-size: 32px;
+      line-height: 1;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.18));
+    }
+
+    .objectItem.removed{
+      opacity:.35;
+      text-decoration: line-through;
+      transform: scale(.92);
+    }
+
+    .objectNumber{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-width: 96px;
+      padding: 8px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.28);
+      color:#0b1020;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 8px 14px rgba(255,255,255,.35);
+    }
+
+    .objectOperator{
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      color:#0b1020;
+      font-size: 40px;
+      font-weight: 900;
+      min-width: 36px;
+      text-align:center;
+    }
+
+    .okGlow{
+      border-color: rgba(34,197,94,.75) !important;
+      box-shadow: 0 0 0 8px rgba(34,197,94,.18), var(--shadow);
+    }
+
+    .badGlow{
+      border-color: rgba(239,68,68,.75) !important;
+      box-shadow: 0 0 0 8px rgba(239,68,68,.16), var(--shadow);
+    }
+
+    .controls{
+      display:grid;
+      gap:12px;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      justify-content:center;
+    }
+
+    .answer{
+      flex: 1 1 340px;
+      padding: 18px 18px;
+      border-radius: 22px;
+      border: 3px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.28);
+      color: #0b1020;
+      outline:none;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-align:center;
+
+      box-shadow: 0 14px 24px rgba(0,0,0,.16);
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+
+    .answer:focus{
+      border-color: rgba(255,255,255,.85);
+      box-shadow: 0 0 0 8px rgba(255,255,255,.20), 0 14px 24px rgba(0,0,0,.16);
+    }
+
+    .inputOk{
+      border-color: rgba(34,197,94,.85) !important;
+      box-shadow: 0 0 0 8px rgba(34,197,94,.18), 0 14px 24px rgba(0,0,0,.16) !important;
+    }
+
+    .inputBad{
+      border-color: rgba(239,68,68,.85) !important;
+      box-shadow: 0 0 0 8px rgba(239,68,68,.16), 0 14px 24px rgba(0,0,0,.16) !important;
+      animation: wiggle .35s ease-in-out 1;
+    }
+
+    @keyframes wiggle{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-8px); }
+      50%{ transform: translateX(8px); }
+      75%{ transform: translateX(-6px); }
+      100%{ transform: translateX(0); }
+    }
+
+    .btn{
+      padding: 18px 18px;
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.30);
+      box-shadow: 0 14px 24px rgba(0,0,0,.16);
+      cursor:pointer;
+      user-select:none;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: #0b1020;
+
+      transition: transform .05s ease, filter .15s ease;
+      min-width: 170px;
+    }
+
+    .btn:hover{ filter: brightness(1.06); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+
+    .msg{
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.40);
+      background: rgba(255,255,255,.24);
+      box-shadow: 0 14px 24px rgba(0,0,0,.12);
+      padding: 14px 16px;
+
+      color: #0b1020;
+      font-size: 20px;
+      font-weight: 800;
+      min-height: 58px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      position: relative;
+      overflow:hidden;
+    }
+
+    .msg.ok{
+      border-color: rgba(34,197,94,.65);
+      background: rgba(34,197,94,.18);
+    }
+
+    .msg.bad{
+      border-color: rgba(239,68,68,.65);
+      background: rgba(239,68,68,.16);
+    }
+
+    .settings{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      padding: 2px 8px 0 8px;
+      color: rgba(255,255,255,.95);
+      font-weight: 700;
+    }
+
+    .toggle{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      user-select:none;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.30);
+      padding: 10px 12px;
+      border-radius: 999px;
+    }
+
+    .toggle input{ transform: scale(1.25); }
+
+    .selectWrap{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      user-select:none;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.30);
+      padding: 10px 12px;
+      border-radius: 999px;
+    }
+
+    select{
+      border: 0;
+      outline: 0;
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-family: "Fredoka", sans-serif;
+      font-weight: 800;
+      color:#0b1020;
+      background: rgba(255,255,255,.85);
+    }
+
+    .kbd{
+      display:grid;
+      gap:12px;
+      padding-top: 8px;
+    }
+
+    .kbdRow{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .key{
+      width: 82px;
+      height: 74px;
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.30);
+      box-shadow: 0 12px 20px rgba(0,0,0,.14);
+      cursor:pointer;
+      user-select:none;
+
+      display:grid;
+      place-items:center;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #0b1020;
+
+      transition: transform .05s ease, filter .15s ease;
+    }
+
+    .key:hover{ filter: brightness(1.06); }
+    .key:active{ transform: translateY(1px) scale(.98); }
+
+    .key.wide{ width: 180px; }
+    .key.danger{
+      background: rgba(239,68,68,.18);
+      border-color: rgba(239,68,68,.35);
+    }
+
+    .confetti{
+      position: absolute;
+      inset: 0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index: 20;
+    }
+
+    .confetti i{
+      position:absolute;
+      top:-20px;
+      width: 12px;
+      height: 18px;
+      border-radius: 6px;
+      opacity:.95;
+      animation: fall 900ms linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
+    }
+
+    @keyframes fall{
+      to{
+        transform: translateY(520px) rotate(540deg);
+        opacity: 0.95;
+      }
+    }
+
+    @media (max-width: 820px){
+      .topbar{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+
+      .equation{
+        gap:10px;
+      }
+
+      .numCard, .opCard, .equalCard, .questionCard{
+        min-width: 72px;
+        min-height: 78px;
+        border-radius: 22px;
+      }
+
+      .numCard, .opCard, .equalCard, .questionCard{
+        font-size: 46px;
+      }
+
+      .icon{ font-size: 72px; }
+      .answer{ font-size: 34px; }
+      .key{ width: 62px; height: 62px; border-radius: 18px; }
+      .pill b{ font-size: 30px; }
+      .trophyPill{ min-width: 100%; }
+      .trophyHead b{ font-size: 26px; }
+      .objectItem{ font-size: 26px; }
+      .prompt{ font-size:22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>Jogo Infinito do Cálculo</h1>
+        <p class="subtitle">Adição e subtração • Correção automática • Números positivos</p>
+      </div>
+
+      <div class="stats">
+        <div class="pill"><span class="label">PONTOS</span> <b id="score">0</b></div>
+        <div class="pill"><span class="label">ACERTOS</span> <b id="hits">0</b></div>
+        <div class="pill"><span class="label">ERROS</span> <b id="errors">0</b></div>
+        <div class="pill"><span class="label">RODADA</span> <b id="round">1</b></div>
+        <div class="pill trophyPill">
+          <div class="trophyHead"><span class="label">SEGUIDAS</span> <b id="streakCount">0</b></div>
+          <div class="trophyTray" id="trophyTray" aria-label="Troféus por acertos seguidos"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="confetti" id="confetti"></div>
+
+      <div class="boardInner">
+        <div class="mathBox" id="mathBox">
+          <span class="icon" id="icon">calculate</span>
+
+          <div class="prompt" id="prompt">Resolva a conta</div>
+
+          <div class="equation" aria-label="Conta matemática">
+            <div class="numCard" id="numA">0</div>
+            <div class="opCard" id="operator">+</div>
+            <div class="numCard" id="numB">0</div>
+            <div class="equalCard">=</div>
+            <div class="questionCard">?</div>
+          </div>
+
+          <div class="objects" id="objects"></div>
+        </div>
+
+        <div class="controls">
+          <div class="row">
+            <input class="answer" id="answer" type="tel" inputmode="numeric" autocomplete="off" spellcheck="false"
+                   placeholder="RESPOSTA..." />
+            <button class="btn" id="clearBtn">LIMPAR</button>
+            <button class="btn" id="skipBtn">TROCAR</button>
+          </div>
+
+          <div class="msg" id="msg">Digite o resultado no campo de resposta.</div>
+
+          <div class="settings">
+            <label class="toggle">
+              <input type="checkbox" id="onlyAddition" />
+              Só adição
+            </label>
+
+            <label class="toggle">
+              <input type="checkbox" id="onlySubtraction" />
+              Só subtração
+            </label>
+
+            <label class="toggle">
+              <input type="checkbox" id="showObjects" checked />
+              Mostrar bolinhas
+            </label>
+
+            <div class="selectWrap">
+              <span>Dificuldade</span>
+              <select id="difficulty">
+                <option value="easy" selected>Fácil: 0 a 10</option>
+                <option value="medium">Médio: 0 a 20</option>
+                <option value="hard">Desafio: 0 a 50</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /******************************************************************
+     * JOGO INFINITO DE CÁLCULO
+     * - Gera contas aleatórias de adição e subtração.
+     * - Na subtração, evita resultado negativo.
+     * - Corrige automaticamente quando o número digitado tem tamanho
+     *   suficiente para comparar com a resposta.
+     ******************************************************************/
+
+    const OBJECTS = ["🍎","⭐","⚽","🟢","🐥","🚗","🌽","🍌","🌸","🐟"];
+
+    const RECENT_BUFFER_SIZE = 10;
+    const CHALLENGE_EVERY_TESTS = 15;
+    const CHALLENGE_TERMS = [20, 20, 20, 7];
+    const MAX_DRAWN_OBJECTS = 5;
+    const SOUNDS = {
+      defaultHit: new Audio("https://www.myinstants.com/media/sounds/acertou_By4HwUh.mp3"),
+      oneHit: new Audio("https://www.myinstants.com/media/sounds/ding-check.mp3"),
+      twoHits: new Audio("https://www.myinstants.com/media/sounds/fahhh_KcgAXfs.mp3"),
+      threeHits: new Audio("https://www.myinstants.com/media/sounds/michael-jackson-hee-hee.mp3"),
+      fourHits: new Audio("https://www.myinstants.com/media/sounds/cr_suuu.mp3"),
+      fiveHits: new Audio("https://www.myinstants.com/media/sounds/anime-wow-sound-effect.mp3"),
+      sixHits: new Audio("https://www.myinstants.com/media/sounds/ronaldo.mp3"),
+      sevenHits: new Audio("https://www.myinstants.com/media/sounds/song-aura.mp3"),
+      firstError: new Audio("https://www.myinstants.com/media/sounds/faustao-errou.mp3"),
+      twoErrors: new Audio("https://www.myinstants.com/media/sounds/roblox-death-sound_1.mp3"),
+      threeErrors: new Audio("https://www.myinstants.com/media/sounds/roblox-gravity-coil.mp3"),
+      fourErrors: new Audio("https://www.myinstants.com/media/sounds/impact_explosion_03_UhRGks5.mp3"),
+      fiveErrors: new Audio("https://www.myinstants.com/media/sounds/dexter-meme.mp3"),
+      sixErrors: new Audio("https://www.myinstants.com/media/sounds/error_CDOxCYm.mp3"),
+      challenge: new Audio("67.mp3")
+    };
+
+    let score = 0;
+    let errors = 0;
+    let hits = 0;
+    let round = 1;
+    let completedTests = 0;
+    let consecutiveHits = 0;
+    let consecutiveErrors = 0;
+
+    let current = null;
+    let recentProblems = [];
+    let answerLocked = false;
+
+    let clearTimer = null;
+    let nextTimer = null;
+
+    const elIcon = document.getElementById("icon");
+    const elAnswer = document.getElementById("answer");
+    const elMsg = document.getElementById("msg");
+    const elScore = document.getElementById("score");
+    const elErrors = document.getElementById("errors");
+    const elHits = document.getElementById("hits");
+    const elRound = document.getElementById("round");
+    const elStreakCount = document.getElementById("streakCount");
+    const elTrophyTray = document.getElementById("trophyTray");
+    const elMathBox = document.getElementById("mathBox");
+    const elConfetti = document.getElementById("confetti");
+
+    const elEquation = document.querySelector(".equation");
+    const elNumA = document.getElementById("numA");
+    const elNumB = document.getElementById("numB");
+    const elOperator = document.getElementById("operator");
+    const elObjects = document.getElementById("objects");
+
+    const elOnlyAddition = document.getElementById("onlyAddition");
+    const elOnlySubtraction = document.getElementById("onlySubtraction");
+    const elShowObjects = document.getElementById("showObjects");
+    const elDifficulty = document.getElementById("difficulty");
+
+    document.getElementById("clearBtn").addEventListener("click", clearInput);
+    document.getElementById("skipBtn").addEventListener("click", () => pickNext(true));
+    elAnswer.addEventListener("input", onInputChange);
+
+    elShowObjects.addEventListener("change", renderObjects);
+
+    elDifficulty.addEventListener("change", () => pickNext(true));
+
+    elOnlyAddition.addEventListener("change", () => {
+      if (elOnlyAddition.checked) elOnlySubtraction.checked = false;
+      pickNext(true);
+    });
+
+    elOnlySubtraction.addEventListener("change", () => {
+      if (elOnlySubtraction.checked) elOnlyAddition.checked = false;
+      pickNext(true);
+    });
+
+    function setMsg(text, type) {
+      elMsg.classList.remove("ok", "bad");
+      if (type) elMsg.classList.add(type);
+      elMsg.textContent = text;
+    }
+
+    function playSound(sound) {
+      if (!sound) return;
+
+      sound.pause();
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
+
+    function renderTrophies() {
+      elStreakCount.textContent = consecutiveHits;
+      elTrophyTray.innerHTML = "";
+
+      for (let i = 0; i < consecutiveHits; i++) {
+        const trophy = document.createElement("span");
+        trophy.textContent = "🏆";
+        elTrophyTray.appendChild(trophy);
+      }
+    }
+
+    function clearVisualState() {
+      elAnswer.classList.remove("inputOk", "inputBad");
+      elMathBox.classList.remove("okGlow", "badGlow");
+    }
+
+    function setOkState() {
+      clearVisualState();
+      elAnswer.classList.add("inputOk");
+      elMathBox.classList.add("okGlow");
+    }
+
+    function setBadState() {
+      clearVisualState();
+      elAnswer.classList.add("inputBad");
+      elMathBox.classList.add("badGlow");
+    }
+
+    function getMaxNumber() {
+      const difficulty = elDifficulty.value;
+
+      if (difficulty === "easy") return 10;
+      if (difficulty === "medium") return 20;
+      return 50;
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getOperation() {
+      if (elOnlyAddition.checked) return "+";
+      if (elOnlySubtraction.checked) return "-";
+      return Math.random() < 0.5 ? "+" : "-";
+    }
+
+    function makeProblem() {
+      const max = getMaxNumber();
+      const op = getOperation();
+
+      let a = randomInt(0, max);
+      let b = randomInt(0, max);
+      let result = 0;
+
+      if (op === "+") {
+        // No fácil, evita resultado muito alto.
+        if (elDifficulty.value === "easy") {
+          a = randomInt(0, 10);
+          b = randomInt(0, 10 - a);
+        }
+        result = a + b;
+      } else {
+        // Evita resultado negativo.
+        a = randomInt(0, max);
+        b = randomInt(0, a);
+        result = a - b;
+      }
+
+      return {
+        a,
+        b,
+        op,
+        result,
+        key: `${a}${op}${b}`,
+        object: OBJECTS[randomInt(0, OBJECTS.length - 1)]
+      };
+    }
+
+    function makeChallengeProblem() {
+      return {
+        a: CHALLENGE_TERMS[0],
+        b: CHALLENGE_TERMS[1],
+        terms: [...CHALLENGE_TERMS],
+        op: "+",
+        result: CHALLENGE_TERMS.reduce((total, value) => total + value, 0),
+        key: `challenge-${CHALLENGE_TERMS.join("+")}`,
+        object: OBJECTS[randomInt(0, OBJECTS.length - 1)],
+        challenge: true
+      };
+    }
+
+    function pickProblemAvoidingRecent() {
+      for (let i = 0; i < 40; i++) {
+        const candidate = makeProblem();
+        if (!recentProblems.includes(candidate.key)) return candidate;
+      }
+
+      return makeProblem();
+    }
+
+    function pushRecent(problem) {
+      if (!problem) return;
+
+      recentProblems.push(problem.key);
+
+      if (recentProblems.length > RECENT_BUFFER_SIZE) {
+        recentProblems.shift();
+      }
+    }
+
+    function renderProblem() {
+      if (!current) return;
+
+      if (clearTimer) clearTimeout(clearTimer);
+      if (nextTimer) clearTimeout(nextTimer);
+
+      clearVisualState();
+
+      elIcon.textContent = current.op === "+" ? "add_circle" : "remove_circle";
+      answerLocked = false;
+      renderEquation();
+
+      elAnswer.value = "";
+
+      renderObjects();
+
+      setMsg("Digite o resultado no campo de resposta.", null);
+      elAnswer.focus();
+    }
+
+    function makeCard(className, text) {
+      const card = document.createElement("div");
+      card.className = className;
+      card.textContent = text;
+      return card;
+    }
+
+    function renderEquation() {
+      const terms = current.terms || [current.a, current.b];
+
+      elEquation.innerHTML = "";
+      elEquation.setAttribute("aria-label", current.challenge ? "Desafio matemático" : "Conta matemática");
+
+      terms.forEach((term, index) => {
+        if (index > 0) {
+          elEquation.appendChild(makeCard("opCard", current.op));
+        }
+
+        elEquation.appendChild(makeCard("numCard", term));
+      });
+
+      elEquation.appendChild(makeCard("equalCard", "="));
+      elEquation.appendChild(makeCard("questionCard", "?"));
+    }
+
+    function renderObjects() {
+      if (!current) return;
+
+      elObjects.innerHTML = "";
+
+      if (!elShowObjects.checked) {
+        elObjects.style.display = "none";
+        return;
+      }
+
+      elObjects.style.display = "flex";
+
+      const left = document.createElement("div");
+      left.className = "objectGroup";
+
+      const middle = document.createElement("div");
+      middle.className = "objectOperator";
+      middle.textContent = current.op;
+
+      const right = document.createElement("div");
+      right.className = "objectGroup";
+
+      if (current.terms) {
+        current.terms.forEach((term, index) => {
+          if (index > 0) {
+            const plus = document.createElement("div");
+            plus.className = "objectOperator";
+            plus.textContent = "+";
+            elObjects.appendChild(plus);
+          }
+
+          const group = document.createElement("div");
+          group.className = "objectGroup";
+          fillObjectGroup(group, term, current.object);
+
+          elObjects.appendChild(group);
+        });
+      } else if (current.op === "+") {
+        fillObjectGroup(left, current.a, current.object);
+        fillObjectGroup(right, current.b, current.object);
+
+        elObjects.appendChild(left);
+        elObjects.appendChild(middle);
+        elObjects.appendChild(right);
+      } else {
+        const total = document.createElement("div");
+        total.className = "objectGroup";
+
+        fillObjectGroup(total, current.a, current.object, current.b);
+
+        const hint = document.createElement("div");
+        hint.className = "objectOperator";
+        hint.textContent = `tire ${current.b}`;
+
+        elObjects.appendChild(total);
+        elObjects.appendChild(hint);
+      }
+    }
+
+    function fillObjectGroup(group, amount, symbol, removedAmount = 0) {
+      if (amount > MAX_DRAWN_OBJECTS) {
+        group.appendChild(makeObjectNumber(symbol, amount, removedAmount));
+        return;
+      }
+
+      for (let i = 0; i < amount; i++) {
+        const item = makeObjectItem(symbol);
+
+        if (removedAmount && i >= amount - removedAmount) {
+          item.classList.add("removed");
+        }
+
+        group.appendChild(item);
+      }
+    }
+
+    function makeObjectNumber(symbol, amount, removedAmount = 0) {
+      const span = document.createElement("span");
+      span.className = "objectNumber";
+      span.textContent = removedAmount ? `${symbol} x ${amount} - ${removedAmount}` : `${symbol} x ${amount}`;
+      return span;
+    }
+
+    function makeObjectItem(symbol) {
+      const span = document.createElement("span");
+      span.className = "objectItem";
+      span.textContent = symbol;
+      return span;
+    }
+
+    function cleanNumericValue(value) {
+      return value.replace(/[^\d]/g, "");
+    }
+
+    function clearInput() {
+      clearVisualState();
+      elAnswer.value = "";
+      setMsg("Vamos tentar de novo!", null);
+      elAnswer.focus();
+    }
+
+    function scheduleAutoClear() {
+      if (clearTimer) clearTimeout(clearTimer);
+
+      clearTimer = setTimeout(() => {
+        clearInput();
+      }, 700);
+    }
+
+    function scheduleNext() {
+      if (nextTimer) clearTimeout(nextTimer);
+
+      nextTimer = setTimeout(() => {
+        pickNext(false);
+      }, 850);
+    }
+
+    function makeConfetti() {
+      elConfetti.innerHTML = "";
+
+      const colors = ["#22c55e","#f59e0b","#06b6d4","#fb7185","#a78bfa","#ffffff","#34d399","#60a5fa"];
+      const count = 32;
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("i");
+        p.style.left = (Math.random() * 100) + "%";
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (700 + Math.random() * 600) + "ms";
+        p.style.animationDelay = (Math.random() * 140) + "ms";
+        p.style.width = (10 + Math.random()*10) + "px";
+        p.style.height = (14 + Math.random()*14) + "px";
+        p.style.borderRadius = (4 + Math.random()*12) + "px";
+        elConfetti.appendChild(p);
+      }
+
+      setTimeout(() => {
+        elConfetti.innerHTML = "";
+      }, 1500);
+    }
+
+    function onInputChange() {
+      if (!current || answerLocked) return;
+
+      const resultText = String(current.result);
+      const typed = cleanNumericValue(elAnswer.value);
+
+      if (elAnswer.value !== typed) {
+        elAnswer.value = typed;
+      }
+
+      if (typed.length === 0) {
+        clearVisualState();
+        setMsg("Digite o resultado no campo de resposta.", null);
+        return;
+      }
+
+      // Ainda não dá para comparar quando a resposta possui mais dígitos.
+      if (typed.length < resultText.length) {
+        clearVisualState();
+        setMsg("Continue digitando...", null);
+        return;
+      }
+
+      if (typed === resultText) {
+        answerLocked = true;
+        setOkState();
+
+        hits += 1;
+        consecutiveHits += 1;
+        consecutiveErrors = 0;
+        completedTests += 1;
+        score += current.op === "+" ? 10 : 12;
+        if (current.challenge) score += 20;
+        round += 1;
+
+        elHits.textContent = hits;
+        elScore.textContent = score;
+        elRound.textContent = round;
+        renderTrophies();
+
+        setMsg("ACERTOU! MUITO BEM!", "ok");
+        playHitStreakSound();
+        makeConfetti();
+        scheduleNext();
+      } else {
+        setBadState();
+
+        errors += 1;
+        consecutiveErrors += 1;
+        consecutiveHits = 0;
+        elErrors.textContent = errors;
+        renderTrophies();
+
+        setMsg("OPS! TENTE DE NOVO!", "bad");
+        playErrorStreakSound();
+        scheduleAutoClear();
+      }
+    }
+
+    function playHitStreakSound() {
+      if (consecutiveHits === 1) {
+        playSound(SOUNDS.oneHit);
+      } else if (consecutiveHits === 2) {
+        playSound(SOUNDS.twoHits);
+      } else if (consecutiveHits === 3) {
+        playSound(SOUNDS.threeHits);
+      } else if (consecutiveHits === 4) {
+        playSound(SOUNDS.fourHits);
+      } else if (consecutiveHits === 5) {
+        playSound(SOUNDS.fiveHits);
+      } else if (consecutiveHits === 6) {
+        playSound(SOUNDS.sixHits);
+      } else if (consecutiveHits === 7) {
+        playSound(SOUNDS.sevenHits);
+      } else {
+        playSound(SOUNDS.defaultHit);
+      }
+    }
+
+    function playErrorStreakSound() {
+      if (consecutiveErrors === 1) {
+        playSound(SOUNDS.firstError);
+      } else if (consecutiveErrors === 2) {
+        playSound(SOUNDS.twoErrors);
+      } else if (consecutiveErrors === 3) {
+        playSound(SOUNDS.threeErrors);
+      } else if (consecutiveErrors === 4) {
+        playSound(SOUNDS.fourErrors);
+      } else if (consecutiveErrors === 5) {
+        playSound(SOUNDS.fiveErrors);
+      } else if (consecutiveErrors === 6) {
+        playSound(SOUNDS.sixErrors);
+      }
+    }
+
+    function pickNext(forceNew) {
+      if (current) pushRecent(current);
+
+      let nextProblem = completedTests > 0 && completedTests % CHALLENGE_EVERY_TESTS === 0
+        ? makeChallengeProblem()
+        : pickProblemAvoidingRecent();
+
+      if (!nextProblem.challenge && current && nextProblem.key === current.key) {
+        for (let i = 0; i < 20; i++) {
+          const candidate = pickProblemAvoidingRecent();
+
+          if (candidate.key !== current.key) {
+            nextProblem = candidate;
+            break;
+          }
+        }
+      }
+
+      current = nextProblem;
+      renderProblem();
+
+      if (current.challenge) {
+        playSound(SOUNDS.challenge);
+        setMsg("DESAFIO! Resolva 20 + 20 + 20 + 7.", null);
+      } else if (forceNew) {
+        setMsg("Nova conta! Resolva com atenção.", null);
+      }
+    }
+
+    function init() {
+      elScore.textContent = score;
+      elErrors.textContent = errors;
+      elHits.textContent = hits;
+      elRound.textContent = round;
+      renderTrophies();
+      pickNext(false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
