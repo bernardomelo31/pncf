@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jogo Infinito: Figuras e Palavras</title>
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Fontes infantis -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#7c3aed;
+      --bg2:#06b6d4;
+      --bg3:#f59e0b;
+      --bg4:#22c55e;
+      --bg5:#fb7185;
+
+      --card: rgba(255,255,255,.22);
+      --stroke: rgba(255,255,255,.35);
+      --white:#ffffff;
+
+      --ok:#22c55e;
+      --bad:#ef4444;
+
+      --shadow: 0 20px 50px rgba(0,0,0,.25);
+      --radius: 26px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:18px;
+
+      font-family: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--white);
+
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 85% 15%, rgba(255,255,255,.25), transparent 55%),
+        radial-gradient(1200px 700px at 50% 110%, rgba(255,255,255,.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4), var(--bg5));
+      background-size: 200% 200%;
+      animation: bgMove 12s ease-in-out infinite;
+      overflow-x:hidden;
+    }
+
+    @keyframes bgMove{
+      0%{ background-position: 0% 50%; }
+      50%{ background-position: 100% 50%; }
+      100%{ background-position: 0% 50%; }
+    }
+
+    .app{
+      width:min(1350px, 100%);
+      display:grid;
+      gap:16px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+
+      padding:18px 20px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 2px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow:hidden;
+    }
+
+    .topbar::before{
+      content:"";
+      position:absolute;
+      inset:-120px;
+      background: radial-gradient(circle at 20% 40%, rgba(255,255,255,.45), transparent 55%),
+                  radial-gradient(circle at 75% 35%, rgba(255,255,255,.35), transparent 55%);
+      transform: rotate(10deg);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .title{
+      position: relative;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .title h1{
+      margin:0;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 30px;
+      letter-spacing:.2px;
+      text-shadow: 0 6px 18px rgba(0,0,0,.20);
+    }
+
+    .subtitle{
+      margin:0;
+      font-size: 16px;
+      opacity:.95;
+    }
+
+    .stats{
+      position: relative;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+
+      padding:12px 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.30);
+      border: 2px solid rgba(255,255,255,.40);
+      box-shadow: 0 12px 22px rgba(0,0,0,.18);
+      color: #08102a;
+      font-weight: 800;
+    }
+
+    .pill .label{
+      font-size: 16px;
+      opacity:.9;
+    }
+
+    .pill b{
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 34px;
+      letter-spacing:.02em;
+    }
+
+    .board{
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 2px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+      position: relative;
+    }
+
+    .boardInner{
+      padding:18px;
+      display:grid;
+      gap:16px;
+    }
+
+    .figure{
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.30);
+      border: 2px solid rgba(255,255,255,.45);
+      padding: 22px 12px;
+      display:grid;
+      place-items:center;
+      position: relative;
+      overflow:hidden;
+    }
+
+    .figure::before{
+      content:"";
+      position:absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.55), transparent 60%);
+      top: -60px;
+      left: -70px;
+      opacity:.65;
+      pointer-events:none;
+    }
+
+    .figure::after{
+      content:"";
+      position:absolute;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.35), transparent 60%);
+      bottom: -80px;
+      right: -90px;
+      opacity:.65;
+      pointer-events:none;
+    }
+
+    .icon{
+      font-family: "Material Icons";
+      font-size: 200px;
+      line-height: 1;
+      user-select:none;
+      color: #111827;
+      filter: drop-shadow(0 16px 22px rgba(0,0,0,.25));
+      animation: bounce 1.6s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes bounce{
+      0%,100%{ transform: translateY(0) rotate(-2deg); }
+      50%{ transform: translateY(-10px) rotate(2deg); }
+    }
+
+    .prompt{
+      margin-top: 8px;
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 22px;
+      color: #0b1020;
+      text-shadow: 0 6px 18px rgba(255,255,255,.50);
+      position: relative;
+      z-index: 1;
+    }
+
+    .okGlow{
+      border-color: rgba(34,197,94,.75) !important;
+      box-shadow: 0 0 0 8px rgba(34,197,94,.18), var(--shadow);
+    }
+    .badGlow{
+      border-color: rgba(239,68,68,.75) !important;
+      box-shadow: 0 0 0 8px rgba(239,68,68,.16), var(--shadow);
+    }
+
+    .wordline{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:14px;
+      padding: 12px 10px 2px 10px;
+    }
+
+    .slot{
+      width: 78px;
+      height: 96px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.26);
+      border: 2px solid rgba(255,255,255,.42);
+      display:grid;
+      place-items:center;
+      position: relative;
+      box-shadow: 0 12px 20px rgba(0,0,0,.14);
+    }
+
+    .slot::after{
+      content:"";
+      position:absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 14px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(17,24,39,.18);
+    }
+
+    .slot span{
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 52px;
+      font-weight: 900;
+      color: #0b1020;
+      text-shadow: 0 10px 18px rgba(255,255,255,.35);
+    }
+
+    .slot.slotOk{
+      background: rgba(187,247,208,.82);
+      border-color: rgba(34,197,94,.75);
+      box-shadow: 0 0 0 7px rgba(34,197,94,.16), 0 12px 20px rgba(0,0,0,.14);
+    }
+
+    .slot.slotBad{
+      background: rgba(254,202,202,.86);
+      border-color: rgba(239,68,68,.78);
+      box-shadow: 0 0 0 7px rgba(239,68,68,.16), 0 12px 20px rgba(0,0,0,.14);
+      animation: wiggle .35s ease-in-out 1;
+    }
+
+    .letters{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:12px;
+      padding: 12px 10px 16px 10px;
+    }
+
+    .chip{
+      min-width: 64px;
+      padding: 12px 16px;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.30);
+      box-shadow: 0 12px 20px rgba(0,0,0,.14);
+      cursor:pointer;
+      user-select:none;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 30px;
+      font-weight: 900;
+      color: #0b1020;
+
+      transition: transform .05s ease, filter .15s ease;
+    }
+    .chip:hover{ filter: brightness(1.06); }
+    .chip:active{ transform: translateY(1px) scale(.98); }
+
+    .controls{
+      display:grid;
+      gap:12px;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      justify-content:center;
+    }
+
+    .answer{
+      flex: 1 1 340px;
+      padding: 18px 18px;
+      border-radius: 22px;
+      border: 3px solid rgba(255,255,255,.55);
+      background: rgba(255,255,255,.28);
+      color: #0b1020;
+      outline:none;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+
+      box-shadow: 0 14px 24px rgba(0,0,0,.16);
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .answer:focus{
+      border-color: rgba(255,255,255,.85);
+      box-shadow: 0 0 0 8px rgba(255,255,255,.20), 0 14px 24px rgba(0,0,0,.16);
+    }
+
+    .inputOk{
+      border-color: rgba(34,197,94,.85) !important;
+      box-shadow: 0 0 0 8px rgba(34,197,94,.18), 0 14px 24px rgba(0,0,0,.16) !important;
+    }
+    .inputBad{
+      border-color: rgba(239,68,68,.85) !important;
+      box-shadow: 0 0 0 8px rgba(239,68,68,.16), 0 14px 24px rgba(0,0,0,.16) !important;
+      animation: wiggle .35s ease-in-out 1;
+    }
+    @keyframes wiggle{
+      0%{ transform: translateX(0); }
+      25%{ transform: translateX(-8px); }
+      50%{ transform: translateX(8px); }
+      75%{ transform: translateX(-6px); }
+      100%{ transform: translateX(0); }
+    }
+
+    .btn{
+      padding: 18px 18px;
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.30);
+      box-shadow: 0 14px 24px rgba(0,0,0,.16);
+      cursor:pointer;
+      user-select:none;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: #0b1020;
+
+      transition: transform .05s ease, filter .15s ease;
+      min-width: 170px;
+    }
+    .btn:hover{ filter: brightness(1.06); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+
+    .msg{
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.40);
+      background: rgba(255,255,255,.24);
+      box-shadow: 0 14px 24px rgba(0,0,0,.12);
+      padding: 14px 16px;
+
+      color: #0b1020;
+      font-size: 18px;
+      font-weight: 800;
+      min-height: 58px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      position: relative;
+      overflow:hidden;
+    }
+
+    .msg.ok{
+      border-color: rgba(34,197,94,.65);
+      background: rgba(34,197,94,.18);
+    }
+    .msg.bad{
+      border-color: rgba(239,68,68,.65);
+      background: rgba(239,68,68,.16);
+    }
+
+    .settings{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      padding: 2px 8px 0 8px;
+      color: rgba(255,255,255,.95);
+      font-weight: 700;
+    }
+
+    .toggle{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      user-select:none;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.30);
+      padding: 10px 12px;
+      border-radius: 999px;
+    }
+    .toggle input{ transform: scale(1.25); }
+
+    .kbd{
+      display:grid;
+      gap:12px;
+      padding-top: 8px;
+    }
+    .kbdRow{
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    .key{
+      width: 74px;
+      height: 74px;
+      border-radius: 22px;
+      border: 2px solid rgba(255,255,255,.45);
+      background: rgba(255,255,255,.30);
+      box-shadow: 0 12px 20px rgba(0,0,0,.14);
+      cursor:pointer;
+      user-select:none;
+
+      display:grid;
+      place-items:center;
+
+      font-family: "Baloo 2", "Fredoka", sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #0b1020;
+
+      transition: transform .05s ease, filter .15s ease;
+    }
+    .key:hover{ filter: brightness(1.06); }
+    .key:active{ transform: translateY(1px) scale(.98); }
+
+    .key.wide{ width: 180px; }
+    .key.danger{
+      background: rgba(239,68,68,.18);
+      border-color: rgba(239,68,68,.35);
+    }
+
+    .confetti{
+      position: absolute;
+      inset: 0;
+      pointer-events:none;
+      overflow:hidden;
+      z-index: 20;
+    }
+    .confetti i{
+      position:absolute;
+      top:-20px;
+      width: 12px;
+      height: 18px;
+      border-radius: 6px;
+      opacity:.95;
+      animation: fall 900ms linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.18));
+    }
+    @keyframes fall{
+      to{
+        transform: translateY(520px) rotate(540deg);
+        opacity: 0.95;
+      }
+    }
+
+    @media (max-width: 820px){
+      .icon{ font-size: 155px; }
+      .answer{ font-size: 30px; }
+      .slot{ width: 66px; height: 86px; }
+      .slot span{ font-size: 46px; }
+      .key{ width: 62px; height: 62px; border-radius: 18px; }
+      .pill b{ font-size: 30px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>Jogo Infinito da Palavra</h1>
+        <p class="subtitle">Sem acento • Maiusculas • Correcao automatica</p>
+      </div>
+      <div class="stats">
+        <div class="pill"><span class="label">PONTOS</span> <b id="score">0</b></div>
+        <div class="pill"><span class="label">ACERTOS</span> <b id="hits">0</b></div>
+        <div class="pill"><span class="label">ERROS</span> <b id="errors">0</b></div>
+        <div class="pill"><span class="label">RODADA</span> <b id="round">1</b></div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="confetti" id="confetti"></div>
+
+      <div class="boardInner">
+        <div class="figure" id="figureBox">
+          <span class="icon" id="icon">pets</span>
+          <div class="prompt" id="prompt">COPIE AS LETRAS</div>
+        </div>
+
+        <div class="wordline" id="slots"></div>
+        <div class="letters" id="letters"></div>
+
+        <div class="controls">
+          <div class="row">
+            <input class="answer" id="answer" type="text" autocomplete="off" autocapitalize="none" spellcheck="false"
+                   placeholder="DIGITE AQUI..." />
+            <button class="btn" id="clearBtn">LIMPAR</button>
+            <button class="btn" id="skipBtn">TROCAR</button>
+          </div>
+
+          <div class="msg" id="msg">Clique nas letras ou digite. A correcao e automatica.</div>
+
+          <div class="settings">
+            <label class="toggle">
+              <input type="checkbox" id="shuffleLetters" />
+              Letras embaralhadas
+            </label>
+
+            <label class="toggle" title="Evita repetir as ultimas palavras, quando possivel">
+              <input type="checkbox" id="avoidRecent" checked />
+              Evitar repeticao
+            </label>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /******************************************************************
+     * BANCO "GRANDE" DE ITENS (SEM ACENTO).
+     * - word: SEM ACENTO e em MAIUSCULAS.
+     * - icon: nome do Material Icon.
+     * Você pode adicionar mais linhas aqui livremente.
+     ******************************************************************/
+    const ITEMS = [
+      { icon:"pets", word:"GATO" },
+      { icon:"cruelty_free", word:"CAO" },
+      { icon:"bug_report", word:"INSETO" },
+      { icon:"emoji_nature", word:"FLOR" },
+      { icon:"forest", word:"ARVORE" },
+      { icon:"park", word:"PARQUE" },
+      { icon:"yard", word:"QUINTAL" },
+      { icon:"spa", word:"FOLHA" },
+      { icon:"wb_sunny", word:"SOL" },
+      { icon:"cloud", word:"NUVEM" },
+      { icon:"air", word:"VENTO" },
+      { icon:"water_drop", word:"AGUA" },
+      { icon:"umbrella", word:"CHUVA" },
+      { icon:"ac_unit", word:"GELO" },
+      { icon:"star", word:"ESTRELA" },
+      { icon:"nights_stay", word:"NOITE" },
+
+      { icon:"home", word:"CASA" },
+      { icon:"door_front", word:"PORTA" },
+      { icon:"window", word:"JANELA" },
+      { icon:"bed", word:"CAMA" },
+      { icon:"chair", word:"CADEIRA" },
+      { icon:"table_restaurant", word:"MESA" },
+      { icon:"bathtub", word:"BANHO" },
+      { icon:"lightbulb", word:"LUZ" },
+      { icon:"cleaning_services", word:"LIMPEZA" },
+      { icon:"kitchen", word:"GELADEIRA" },
+
+      { icon:"cake", word:"BOLO" },
+      { icon:"restaurant", word:"COMIDA" },
+      { icon:"lunch_dining", word:"ALMOCO" },
+      { icon:"local_pizza", word:"PIZZA" },
+      { icon:"icecream", word:"SORVETE" },
+      { icon:"local_cafe", word:"CAFE" },
+      { icon:"emoji_food_beverage", word:"CHA" },
+      { icon:"egg", word:"OVO" },
+      { icon:"apple", word:"MACA" },
+      { icon:"set_meal", word:"ARROZ" },
+
+      { icon:"directions_car", word:"CARRO" },
+      { icon:"two_wheeler", word:"MOTO" },
+      { icon:"directions_bus", word:"ONIBUS" },
+      { icon:"train", word:"TREM" },
+      { icon:"flight", word:"AVIAO" },
+      { icon:"sailing", word:"BARCO" },
+      { icon:"rocket_launch", word:"FOGUETE" },
+
+      { icon:"sports_soccer", word:"BOLA" },
+      { icon:"sports_basketball", word:"BASQUETE" },
+      { icon:"sports_tennis", word:"TENIS" },
+      { icon:"sports_esports", word:"JOGO" },
+      { icon:"toys", word:"BRINQUEDO" },
+      { icon:"extension", word:"PECA" },
+
+      { icon:"face", word:"ROSTO" },
+      { icon:"favorite", word:"CORACAO" },
+      { icon:"sentiment_very_satisfied", word:"FELIZ" },
+      { icon:"mood_bad", word:"TRISTE" },
+      { icon:"handshake", word:"AMIGO" },
+
+      { icon:"school", word:"ESCOLA" },
+      { icon:"menu_book", word:"LIVRO" },
+      { icon:"edit", word:"LAPIS" },
+      { icon:"palette", word:"COR" },
+      { icon:"abc", word:"LETRAS" },
+      { icon:"numbers", word:"NUMEROS" },
+
+      { icon:"local_hospital", word:"HOSPITAL" },
+      { icon:"medical_services", word:"MEDICO" },
+      { icon:"healing", word:"CURATIVO" },
+
+      { icon:"music_note", word:"MUSICA" },
+      { icon:"headphones", word:"FONE" },
+      { icon:"mic", word:"MICROFONE" },
+
+      { icon:"star_rate", word:"ESTRELA" },
+      { icon:"emoji_events", word:"TROFEU" },
+      { icon:"redeem", word:"PRESENTE" }
+    ];
+
+    // Config de "infinito": evita repetir as ultimas N palavras quando possível
+    const RECENT_BUFFER_SIZE = 12;
+    const HIT_SOUND = new Audio("https://www.myinstants.com/media/sounds/ding-check.mp3");
+
+    // Estado do jogo
+    let score = 0;
+    let errors = 0;
+    let hits = 0;
+    let round = 1;
+
+    let current = null; // item atual
+    let recentWords = []; // buffer de palavras recentes
+    let feedbackLocked = false;
+
+    // Timers
+    let clearTimer = null;
+    let nextTimer = null;
+
+    // Elementos
+    const elIcon = document.getElementById("icon");
+    const elAnswer = document.getElementById("answer");
+    const elMsg = document.getElementById("msg");
+    const elScore = document.getElementById("score");
+    const elErrors = document.getElementById("errors");
+    const elHits = document.getElementById("hits");
+    const elRound = document.getElementById("round");
+    const elSlots = document.getElementById("slots");
+    const elLetters = document.getElementById("letters");
+    const elShuffleLetters = document.getElementById("shuffleLetters");
+    const elAvoidRecent = document.getElementById("avoidRecent");
+    const elFigureBox = document.getElementById("figureBox");
+    const elConfetti = document.getElementById("confetti");
+
+    document.getElementById("clearBtn").addEventListener("click", clearInput);
+    document.getElementById("skipBtn").addEventListener("click", () => pickNext(true));
+    elAnswer.addEventListener("input", onInputChange);
+
+    elShuffleLetters.addEventListener("change", () => renderCurrent());
+    elAvoidRecent.addEventListener("change", () => {}); // só afeta seleção
+
+    function setMsg(text, type) {
+      elMsg.classList.remove("ok", "bad");
+      if (type) elMsg.classList.add(type);
+      elMsg.textContent = text;
+    }
+
+    function playSound(sound) {
+      if (!sound) return;
+
+      sound.pause();
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
+
+    function clearVisualState() {
+      elAnswer.classList.remove("inputOk", "inputBad");
+      elFigureBox.classList.remove("okGlow", "badGlow");
+    }
+    function setOkState() {
+      clearVisualState();
+      elAnswer.classList.add("inputOk");
+      elFigureBox.classList.add("okGlow");
+    }
+    function setBadState() {
+      clearVisualState();
+      elAnswer.classList.add("inputBad");
+      elFigureBox.classList.add("badGlow");
+    }
+
+    function shuffle(a) {
+      const arr = a.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function renderSlots(word) {
+      elSlots.innerHTML = "";
+      [...word].forEach(() => {
+        const d = document.createElement("div");
+        d.className = "slot";
+        const s = document.createElement("span");
+        s.textContent = "";
+        d.appendChild(s);
+        elSlots.appendChild(d);
+      });
+    }
+
+    function syncSlotsFromInput(word) {
+      const typed = elAnswer.value.toUpperCase().slice(0, word.length);
+      if (elAnswer.value.length > word.length) elAnswer.value = typed;
+
+      const slots = elSlots.querySelectorAll(".slot");
+      slots.forEach((slot, i) => {
+        const sp = slot.querySelector("span");
+        const letter = typed[i] ?? "";
+
+        slot.classList.remove("slotOk", "slotBad");
+        if (letter && letter === word[i]) slot.classList.add("slotOk");
+        if (letter && letter !== word[i]) slot.classList.add("slotBad");
+
+        sp.textContent = (typed[i] ?? "");
+      });
+    }
+
+    function renderLetters(word) {
+      elLetters.innerHTML = "";
+      let arr = [...word];
+      if (elShuffleLetters.checked) arr = shuffle(arr);
+
+      arr.forEach(ch => {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.textContent = ch;
+        chip.addEventListener("click", () => addLetter(ch));
+        elLetters.appendChild(chip);
+      });
+    }
+
+    function addLetter(ch) {
+      if (feedbackLocked) return;
+
+      const word = current.word;
+      if (elAnswer.value.length >= word.length) return;
+
+      clearVisualState();
+      elAnswer.value = (elAnswer.value + ch).toUpperCase();
+      onInputChange();
+      elAnswer.focus();
+    }
+
+    function clearInput() {
+      feedbackLocked = false;
+      clearVisualState();
+      elAnswer.value = "";
+      syncSlotsFromInput(current.word);
+      setMsg("Vamos de novo!", null);
+      elAnswer.focus();
+    }
+
+    function scheduleAutoClear() {
+      if (clearTimer) clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => {
+        clearInput();
+      }, 650);
+    }
+
+    function scheduleNext() {
+      if (nextTimer) clearTimeout(nextTimer);
+      nextTimer = setTimeout(() => {
+        pickNext(false);
+      }, 750);
+    }
+
+    function makeConfetti() {
+      elConfetti.innerHTML = "";
+      const colors = ["#22c55e","#f59e0b","#06b6d4","#fb7185","#a78bfa","#ffffff","#34d399","#60a5fa"];
+      const count = 28;
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("i");
+        p.style.left = (Math.random() * 100) + "%";
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (700 + Math.random() * 600) + "ms";
+        p.style.animationDelay = (Math.random() * 140) + "ms";
+        p.style.width = (10 + Math.random()*10) + "px";
+        p.style.height = (14 + Math.random()*14) + "px";
+        p.style.borderRadius = (4 + Math.random()*12) + "px";
+        elConfetti.appendChild(p);
+      }
+      setTimeout(() => { elConfetti.innerHTML = ""; }, 1500);
+    }
+
+    // Correção automática
+    function onInputChange() {
+      if (!current || feedbackLocked) return;
+      const word = current.word;
+
+      elAnswer.value = elAnswer.value.toUpperCase();
+      syncSlotsFromInput(word);
+
+      const typed = (elAnswer.value || "").toUpperCase();
+
+      const wrongLetterIndex = [...typed].findIndex((ch, i) => ch !== word[i]);
+
+      if (wrongLetterIndex !== -1) {
+        feedbackLocked = true;
+        setBadState();
+        errors += 1;
+        elErrors.textContent = errors;
+        setMsg("OPS! ESSA LETRA NAO E AQUI.", "bad");
+        scheduleAutoClear();
+        return;
+      }
+
+      if (typed.length < word.length) {
+        clearVisualState();
+        setMsg("Continue copiando as letras!", null);
+        return;
+      }
+
+      if (typed === word) {
+        feedbackLocked = true;
+        setOkState();
+        hits += 1;
+        score += 10;
+        round += 1;
+
+        elHits.textContent = hits;
+        elScore.textContent = score;
+        elRound.textContent = round;
+
+        setMsg("ACERTOU! MUITO BEM!", "ok");
+        playSound(HIT_SOUND);
+        makeConfetti();
+        scheduleNext();
+      } else {
+        setBadState();
+        errors += 1;
+        elErrors.textContent = errors;
+        setMsg("OPS! TENTE DE NOVO!", "bad");
+        scheduleAutoClear();
+      }
+    }
+
+    function renderCurrent() {
+      if (!current) return;
+
+      // timers
+      if (clearTimer) clearTimeout(clearTimer);
+      if (nextTimer) clearTimeout(nextTimer);
+
+      feedbackLocked = false;
+      clearVisualState();
+
+      elIcon.textContent = current.icon;
+
+      renderSlots(current.word);
+      renderLetters(current.word);
+
+      elAnswer.value = "";
+      syncSlotsFromInput(current.word);
+
+      setMsg("Clique nas letras ou digite. Vamos brincar!", null);
+      elAnswer.focus();
+    }
+
+    function pushRecent(word) {
+      recentWords.push(word);
+      if (recentWords.length > RECENT_BUFFER_SIZE) recentWords.shift();
+    }
+
+    function pickItemAvoidingRecent() {
+      // Se não quiser evitar repetição, retorna aleatório puro
+      if (!elAvoidRecent.checked || recentWords.length === 0) {
+        return ITEMS[Math.floor(Math.random() * ITEMS.length)];
+      }
+
+      // Tenta algumas vezes achar um item que não está no buffer recente
+      const maxTries = 40;
+      for (let i = 0; i < maxTries; i++) {
+        const cand = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+        if (!recentWords.includes(cand.word)) return cand;
+      }
+
+      // Se não conseguir (banco pequeno), devolve qualquer um
+      return ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    }
+
+    /**
+     * pickNext(forceNew):
+     * - forceNew=true: troca mesmo sem acertar (botão TROCAR)
+     * - forceNew=false: veio de acerto
+     */
+    function pickNext(forceNew) {
+      // mantém histórico para reduzir repetição
+      if (current && !forceNew) {
+        pushRecent(current.word);
+      } else if (current && forceNew) {
+        // também evita trocar e cair no mesmo imediatamente
+        pushRecent(current.word);
+      }
+
+      // escolhe novo
+      let nextItem = pickItemAvoidingRecent();
+
+      // garante que não repita exatamente o atual, quando possível
+      if (current && nextItem.word === current.word && ITEMS.length > 1) {
+        // tenta achar outro rapidamente
+        for (let i = 0; i < 20; i++) {
+          const cand = pickItemAvoidingRecent();
+          if (cand.word !== current.word) { nextItem = cand; break; }
+        }
+      }
+
+      current = nextItem;
+      renderCurrent();
+    }
+
+    // Inicialização
+    function init() {
+      elScore.textContent = score;
+      elErrors.textContent = errors;
+      elHits.textContent = hits;
+      elRound.textContent = round;
+      pickNext(false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
